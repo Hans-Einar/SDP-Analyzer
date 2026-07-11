@@ -1,10 +1,62 @@
-requirements: {}
-designs: {}
-sprints: {}
-refactors: {}
-slices: {}
+documents:
+  STU-001:
+    path: SDP/02--Study/study.md
+    derives_from: [MANDATE]
+    decisions: [DEC-STU-001, DEC-STU-002, DEC-STU-003, DEC-STU-004, DEC-STU-005, DEC-STU-006, DEC-STU-007, DEC-STU-008, DEC-STU-009, DEC-STU-010, DEC-STU-011, DEC-STU-012, DEC-STU-013, DEC-STU-014]
+  REQSET-001:
+    path: SDP/03--Requirements/requirements.md
+    derives_from: [STU-001]
+  ARC-001:
+    path: SDP/04--Architecture/architecture.md
+    derives_from: [STU-001, REQSET-001]
+  DAN-001:
+    path: SDP/05--DesignAnalysis/design-analysis.md
+    derives_from: [ARC-001, REQSET-001]
+  DES-001:
+    path: SDP/06--Design/design.md
+    derives_from: [DAN-001, ARC-001, REQSET-001]
+  IMP-001:
+    path: SDP/07--Implementation/implementation-plan.md
+    derives_from: [DES-001, DAN-001, ARC-001, REQSET-001]
+  VER-PLAN-001:
+    path: SDP/Verification/verification-plan.md
+    derives_from: [REQSET-001, DES-001, IMP-001]
+
+tiers:
+  TIER-001:
+    derives_from: [STU-001, REQSET-001, ARC-001, DAN-001, DES-001, IMP-001]
+    sprint: SPR-001
+
+sprints:
+  SPR-001:
+    path: SDP/Sprints/SPR-001/ScrumIterations.md
+    tier: TIER-001
+    requirements: [REQ-F-001, REQ-F-002, REQ-F-003, REQ-F-004, REQ-F-005, REQ-F-006, REQ-D-001, REQ-D-002, REQ-D-003, REQ-D-004, REQ-D-005, REQ-D-006, REQ-V-001, REQ-V-002, REQ-V-003, REQ-V-004, REQ-V-005, REQ-V-006, REQ-V-007, REQ-V-008, REQ-P-001, REQ-P-002, REQ-P-003, REQ-P-004, REQ-UI-001, REQ-UI-002, REQ-UI-003, REQ-UI-004, REQ-T-001, REQ-T-002, REQ-T-003, REQ-T-004, REQ-T-005, REQ-S-001, REQ-S-002, REQ-S-003, REQ-C-001, REQ-C-002, REQ-C-003, REQ-M-001, REQ-M-002, REQ-M-003, REQ-M-004, REQ-M-005, REQ-NF-001, REQ-NF-002, REQ-NF-003, REQ-NF-004, REQ-NF-005]
+    iteration: ITR-001
+
+iterations:
+  ITR-001:
+    sprint: SPR-001
+    slices: [SLC-001, SLC-002, SLC-003, SLC-004, SLC-005, SLC-006, SLC-007]
+
+slices:
+  SLC-001:
+    path: SDP/Sprints/SPR-001/ScrumIterations.md
+    sprint: SPR-001
+    iteration: ITR-001
+    status: active
+    requirements: [REQ-M-001, REQ-M-004, REQ-NF-005, REQ-T-003, REQ-F-001, REQ-M-002]
+    architecture: [ARC-COMP-001, ARC-COMP-007, ARC-COMP-008, ARC-COMP-009, ARC-COMP-011, ADR-001, ADR-002, ADR-007]
+    design: [DES-001]
+    verification_plan: VER-PLAN-001
+  SLC-002: {sprint: SPR-001, iteration: ITR-001, status: planned}
+  SLC-003: {sprint: SPR-001, iteration: ITR-001, status: planned}
+  SLC-004: {sprint: SPR-001, iteration: ITR-001, status: planned}
+  SLC-005: {sprint: SPR-001, iteration: ITR-001, status: planned}
+  SLC-006: {sprint: SPR-001, iteration: ITR-001, status: planned}
+  SLC-007: {sprint: SPR-001, iteration: ITR-001, status: planned}
+
 reviews: {}
 verification: {}
 
-# Map stable IDs to related requirement, design, implementation, review and
-# verification IDs. Replace this template with project-specific relations.
+# Verification and review IDs are added only after real records exist.
