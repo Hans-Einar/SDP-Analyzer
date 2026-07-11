@@ -1,31 +1,222 @@
-# Architecture
+# SDP-Analyzer Architecture
 
-Status: template
+Status: accepted for Tier 1 planning  
+ID: `ARC-001`  
+Date: 2026-07-11
 
-## Context
+## 1. Context
 
-- TBD
+SDP-Analyzer is a read-only analyzer for repository-local SDP evidence. It must support a browser UI now and reuse its analysis core later from CLI, CI, a local Node bridge and SDP skills.
 
-## System Boundaries
+## 2. Architectural principles
 
-- TBD
+- Repository bytes are input evidence; no source is trusted merely because it is named canonically.
+- Acquisition, parsing, normalization, validation, querying and presentation are separate responsibilities.
+- Provenance crosses every boundary.
+- The core is deterministic and framework-independent.
+- React owns presentation state, not project meaning.
+- Compatibility is explicit and versioned.
+- No abstraction is introduced without a real boundary or demonstrated second consumer.
 
-## Components And Responsibilities
+## 3. Boundaries and dependency direction
 
-- TBD
+```text
+React UI / SharedUI adapter
+          |
+          v
+Application/query layer
+          |
+          v
+Analysis orchestration
+   |       |       |
+   v       v       v
+Discovery Parser  Rule engine
+   \       |       /
+    v      v      v
+ Normalized domain model
+          ^
+          |
+ProjectSource adapters
 
-## Contracts And Data Flow
+Report/export adapter reads application/core output only.
+Future CLI/CI/skills call orchestration/core, never React.
+```
 
-- TBD
+Dependencies point inward toward domain contracts. Domain modules import no browser, Node, React or SharedUI modules.
 
-## Dependency Rules
+## 4. Components
 
-- TBD
+### `ARC-COMP-001` Project acquisition and discovery
 
-## Cross-Cutting Concerns
+Responsibilities:
 
-- TBD
+- expose project files through `ProjectSource`;
+- normalize repository-relative POSIX paths;
+- list/read only within the selected source root;
+- discover known SDP files and directories;
+- report absent, ambiguous and unsupported structures.
 
-## Risks And Decisions
+Initial adapter: `FixtureProjectSource`. Later adapters: browser directory handle and Node filesystem.
 
-- TBD
+### `ARC-COMP-002` Parser layer
+
+Responsibilities:
+
+- parse YAML, NDJSON and Markdown sources;
+- retain parser diagnostics and exact source references;
+- return syntax-level records without applying project policy;
+- never execute repository content.
+
+Each parser is separately testable. Parser errors are data, not thrown application crashes, except for programming defects.
+
+### `ARC-COMP-003` Compatibility/profile layer
+
+Responsibilities:
+
+- identify the initial supported SDP profile;
+- map known file conventions and fields to normalization inputs;
+- mark unknown, partial or ambiguous structures;
+- isolate future historical adapters.
+
+This layer does not hide unsupported data by coercing it into the current profile.
+
+### `ARC-COMP-004` Normalized SDP domain model
+
+Responsibilities:
+
+- represent sources, diagnostics, entities, relations, ledger events, active declarations and profile metadata;
+- preserve provenance;
+- provide immutable analysis snapshots;
+- use stable serializable types.
+
+The model is not a graph-library object and contains no UI component state.
+
+### `ARC-COMP-005` Validation/rule engine
+
+Responsibilities:
+
+- run an explicit ordered rule registry;
+- accept a snapshot plus explicit analysis context;
+- emit deterministic findings;
+- isolate rule failure and convert it to an analyzer diagnostic;
+- avoid mutation of the snapshot.
+
+Rules query normalized facts, not React state or raw DOM/UI data.
+
+### `ARC-COMP-006` Findings model
+
+A finding contains stable rule ID, severity, deterministic fingerprint, title, explanation, affected entity IDs, provenance and optional recommendation. Findings remain presentation-neutral.
+
+### `ARC-COMP-007` Application/query layer
+
+Responsibilities:
+
+- orchestrate load → discover → parse → normalize → validate;
+- expose use-case results and derived summaries;
+- own analysis lifecycle state (`idle/loading/ready/failed`);
+- select and filter findings;
+- prepare view models without changing domain facts.
+
+### `ARC-COMP-008` React UI
+
+Responsibilities:
+
+- source selection;
+- status and compatibility summary;
+- active-work summary;
+- diagnostics and findings list/detail;
+- accessible loading/error/empty states.
+
+React components do not parse YAML, inspect ledger semantics or decide whether work is verified.
+
+### `ARC-COMP-009` SharedUI boundary
+
+SharedUI is wrapped or imported only by UI modules. It supplies visual primitives and layout. Domain-specific labels and severity semantics remain owned by SDP-Analyzer.
+
+### `ARC-COMP-010` Report/export boundary
+
+A pure serializer will later convert an analysis result to a versioned machine-readable report. Tier 1 defines the boundary and types but need not expose a user export control.
+
+### `ARC-COMP-011` Fixture and test support
+
+Fixtures implement the same `ProjectSource` contract as real sources. Expected findings are stored separately from fixture input to prevent tests from validating themselves.
+
+## 5. Principal contracts
+
+```ts
+interface ProjectSource {
+  readonly sourceId: string;
+  readonly displayName: string;
+  listFiles(): Promise<readonly ProjectFileEntry[]>;
+  readText(path: string): Promise<ProjectTextFile>;
+}
+
+interface AnalyzeProject {
+  analyze(source: ProjectSource, context: AnalysisContext): Promise<AnalysisResult>;
+}
+
+interface ValidationRule {
+  readonly id: string;
+  evaluate(snapshot: ProjectSnapshot, context: AnalysisContext): readonly Finding[];
+}
+```
+
+Detailed types are defined in Design.
+
+## 6. Data flow
+
+1. User chooses a fixture/source.
+2. `ProjectSource` exposes file metadata and text.
+3. Discovery creates a source manifest and compatibility candidates.
+4. Parsers create syntax records and diagnostics with provenance.
+5. Profile normalization creates one immutable `ProjectSnapshot`.
+6. Rule engine runs canonical ordered rules.
+7. Application queries derive summary and active-work presentation.
+8. UI renders results without altering domain facts.
+
+## 7. Error strategy
+
+- Source access failure: project-level diagnostic; preserve any files already read.
+- File parse failure: source diagnostic with range; continue with other sources.
+- Unsupported structure: compatibility finding or `unknown` status.
+- Rule defect: analyzer-internal diagnostic identifying the rule; remaining rules continue.
+- UI rendering defect: normal application error boundary; never rewrite domain results.
+
+## 8. State ownership
+
+- selected source and analysis lifecycle: application shell/store;
+- immutable snapshot and findings: one current `AnalysisResult` owner;
+- filters and selected finding: UI/application state;
+- parser and rule functions: stateless;
+- permissions/handles: source adapter only.
+
+No duplicate authoritative active-work state is maintained in React.
+
+## 9. Security boundary
+
+The analyzer reads text only. It does not run target commands, import target modules, execute hooks, evaluate MDX, resolve custom YAML constructors, follow filesystem paths outside the selected root or upload content by default.
+
+## 10. Deployment direction
+
+Tier 1 is a static Vite application using fixtures. Browser directory selection is added as an adapter in Tier 2. A local Node service or Tauri application may later supply broader filesystem access. Core packages must remain usable in browser and Node-compatible runtimes where their dependencies permit.
+
+## 11. Architectural decisions
+
+- `ADR-001`: Fixture-first acquisition; browser folder access is adapter-based and deferred from the first Slice.
+- `ADR-002`: Framework-independent TypeScript analysis core.
+- `ADR-003`: Provenance is mandatory domain data.
+- `ADR-004`: Compatibility profiles mediate raw formats and normalized entities.
+- `ADR-005`: Validation is an ordered registry of pure rules.
+- `ADR-006`: Graph visualization and graph libraries are outside Tier 1.
+- `ADR-007`: SharedUI is presentation-only.
+- `ADR-008`: Partial analysis is preferable to all-or-nothing failure.
+
+## 12. Fitness checks
+
+Architecture remains valid when:
+
+- core unit tests run without React or browser globals;
+- the fixture and future folder adapters satisfy the same source contract;
+- every finding can navigate back to source provenance;
+- a future CLI can invoke analysis without importing UI modules;
+- adding a rule does not require editing React components.
