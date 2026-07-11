@@ -1,33 +1,101 @@
-# Implementation Plan
+# SDP-Analyzer Implementation Plan
 
-Status: template
+Status: accepted for Tier 1 planning  
+ID: `IMP-001`  
+Date: 2026-07-11
 
-## Delivery Principle
+## 1. Delivery principle
 
-Design horizontally. Implement vertically.
+Design horizontally; implement and verify vertically. Every Slice leaves a buildable repository, records discoveries instead of expanding scope, receives fresh review, updates traceability and stops.
 
-## Tiers Or Major Capabilities
+## 2. Tier sequence
 
-- Tier 1: TBD
+- `TIER-001`: bundled-fixture analysis of core traceability with summary/findings UI.
+- `TIER-002`: explicit browser local-directory adapter.
+- `TIER-003`: lifecycle/Sprint/Slice/Verification Markdown coverage.
+- `TIER-004`: report, CLI, CI and skill boundaries.
+- `TIER-005`: relation navigation and optional graph.
+- `TIER-006`: separately mandated repair assistance.
 
-## Proposed Sprints And Slices
+Only `TIER-001` is authorized.
 
-- Sprint: TBD
-- Iteration: TBD
-- Slice: TBD
+## 3. Tier 1 Sprint
 
-## Invariants
+`SPR-001` — Deterministic read-only analysis foundation.
 
-- TBD
+Goal: deliver one honest end-to-end fixture workflow while proving the core architecture and provenance model.
 
-## Non-Goals
+### Iteration
 
-- TBD
+`ITR-001` — Establish foundation and analyze core traceability.
 
-## Verification
+### Ordered Slices
 
-- TBD
+1. `SLC-001` Project skeleton and boundary enforcement.
+2. `SLC-002` ProjectSource, provenance and discovery.
+3. `SLC-003` YAML/NDJSON parsing and diagnostics.
+4. `SLC-004` normalized traceability snapshot.
+5. `SLC-005` deterministic rule registry and initial rules.
+6. `SLC-006` application orchestration and read-only UI.
+7. `SLC-007` Tier integration, verification and documentation.
 
-## Completion Signal
+Only one Slice is active at a time. Subsequent Slice contracts may be refined from verified discoveries but may not change `STU-001`, `ARC-001` or `DES-001` silently.
 
-- TBD
+## 4. Repository structure target
+
+```text
+src/
+  core/
+    source/
+    discovery/
+    parsing/
+    domain/
+    validation/
+  application/
+  adapters/
+    fixtures/
+  ui/
+fixtures/
+tests/ (only if not colocated)
+SDP/
+```
+
+Exact filenames may follow established Vite conventions. Package extraction is deferred until a second runtime consumer exists.
+
+## 5. Cross-Slice invariants
+
+- read-only analysis;
+- no execution of analyzed content;
+- provenance retained through findings;
+- core independent of React and SharedUI;
+- explicit partial/unsupported compatibility;
+- deterministic ordering and explicit analysis time;
+- no graph-library canonical model;
+- no arbitrary cleanup outside the active Slice;
+- no completion without actual verification evidence.
+
+## 6. Cross-Slice non-goals
+
+Browser folder access, Node service, Electron/Tauri, graph visualization, broad Markdown inference, stale thresholds, automatic repair, CLI/CI and skill implementation are outside `SPR-001` unless SDP is explicitly revised and accepted.
+
+## 7. Verification gates
+
+Each Slice requires:
+
+1. applicable unit/component tests;
+2. strict typecheck;
+3. production build;
+4. lint when configured;
+5. fresh independent Reviewer inspection;
+6. a Slice-specific verification record containing exact commands and outcomes;
+7. traceability and ledger updates based only on real evidence.
+
+SLC-001 may establish the command set. Later Slices must use it consistently unless a traceable change is approved.
+
+## 8. Discoveries policy
+
+A discovery that is necessary to meet the current Slice contract may be resolved within the Slice when it does not alter architecture, requirements or non-goals. Otherwise Codex shall record it in implementation notes/handoff, mark the Slice blocked if necessary, and return it to the supervising architect. No opportunistic next-Slice work.
+
+## 9. Completion signal
+
+`TIER-001` completes only when a bundled project fixture is analyzed end-to-end; core traceability parsing and initial rules are deterministic and tested; the UI exposes summary, active declarations, diagnostics, findings and provenance; all verification gates pass; independent review approves; and traceability accurately records the evidence.
