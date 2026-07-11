@@ -1,0 +1,9 @@
+{"event_id":"EVT-2026-07-11-001","timestamp":"2026-07-11","type":"planning_accepted","subject_id":"STU-001","status":"accepted","source":"SDP/02--Study/study.md"}
+{"event_id":"EVT-2026-07-11-002","timestamp":"2026-07-11","type":"planning_accepted","subject_id":"REQSET-001","status":"accepted","source":"SDP/03--Requirements/requirements.md"}
+{"event_id":"EVT-2026-07-11-003","timestamp":"2026-07-11","type":"planning_accepted","subject_id":"ARC-001","status":"accepted","source":"SDP/04--Architecture/architecture.md"}
+{"event_id":"EVT-2026-07-11-004","timestamp":"2026-07-11","type":"planning_accepted","subject_id":"DAN-001","status":"accepted","source":"SDP/05--DesignAnalysis/design-analysis.md"}
+{"event_id":"EVT-2026-07-11-005","timestamp":"2026-07-11","type":"planning_accepted","subject_id":"DES-001","status":"accepted","source":"SDP/06--Design/design.md"}
+{"event_id":"EVT-2026-07-11-006","timestamp":"2026-07-11","type":"planning_accepted","subject_id":"IMP-001","status":"accepted","source":"SDP/07--Implementation/implementation-plan.md"}
+{"event_id":"EVT-2026-07-11-007","timestamp":"2026-07-11","type":"sprint_opened","subject_id":"SPR-001","status":"active","source":"SDP/Sprints/SPR-001/ScrumIterations.md"}
+{"event_id":"EVT-2026-07-11-008","timestamp":"2026-07-11","type":"iteration_opened","subject_id":"ITR-001","status":"active","parent_id":"SPR-001","source":"SDP/Sprints/SPR-001/ScrumIterations.md"}
+{"event_id":"EVT-2026-07-11-009","timestamp":"2026-07-11","type":"slice_activated","subject_id":"SLC-001","status":"active","parent_id":"ITR-001","source":"SDP/Sprints/SPR-001/ScrumIterations.md"}
