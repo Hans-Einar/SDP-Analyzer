@@ -1,11 +1,30 @@
 # Handoff — SLC-001
 
-Status: ready for Codex Master  
+Status: SLC-001 completed; awaiting supervising acceptance
 Active Slice: `SLC-001`  
 Sprint: `SPR-001`  
 Iteration: `ITR-001`
 
-## Codex Master prompt
+## Completion handoff
+
+`SLC-001` is completed with passing `VER-SLC-001` evidence and final
+`REV-SLC-001` approval. The implementation establishes npm-based reproducible
+commands, a strict Vite/React/TypeScript shell, framework-independent source
+boundary, deterministic fixture smoke path, and the required SharedUI
+`DashboardRenderer` composition without local generic component duplication.
+
+The initial review required one traceability correction: add `REQ-UI-004` and
+`REQ-UI-001` to the Slice relation. That bounded correction was independently
+re-reviewed and approved. The SharedUI package's undocumented Tailwind consumer
+build requirements and the non-failing 504.71 kB bundle warning remain recorded
+discoveries.
+
+`CurrentIndex.yaml` intentionally still points to
+`SPR-001 / ITR-001 / SLC-001`. The supervising human has not authorized
+activation of `SLC-002`; it remains planned. No commit or pull request was
+created.
+
+## Original Codex Master prompt (fulfilled)
 
 ```text
 You are now the repository-local SDP Master agent for:

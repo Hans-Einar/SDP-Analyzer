@@ -24,7 +24,7 @@ The Iteration executes the ordered Slice contracts below. Only `SLC-001` is acti
 
 ## SLC-001 — Project skeleton and SharedUI boundary enforcement
 
-Status: active  
+Status: completed
 Slice ID: `SLC-001`
 
 ### Goal
@@ -132,6 +132,13 @@ Record package-manager conflicts, a broken tarball/export, or a genuinely missin
 ### Stop condition
 
 Stop immediately after SLC-001 verification, review and traceability updates. Do not begin `SLC-002`.
+
+### Completion record
+
+Completed on 2026-07-11 after `VER-SLC-001` passed and the final
+`REV-SLC-001` disposition was approved following a bounded traceability
+correction. `CurrentIndex.yaml` intentionally remains pointed at `SLC-001`
+for supervising acceptance. `SLC-002` remains planned and was not begun.
 
 ---
 

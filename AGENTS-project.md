@@ -69,7 +69,19 @@ Do not force a baseline component where its contract is semantically wrong. The 
 
 ## Commands and package manager
 
-The package manager and exact commands are established by `SLC-001` from repository evidence. Once chosen, document them here and in the README. Do not maintain competing lockfiles.
+Use npm with the single repository lockfile `package-lock.json`.
+
+Exact commands:
+
+```powershell
+npm ci
+npm run dev
+npm run typecheck
+npm test
+npm run build
+```
+
+No lint command is configured in `SLC-001`. Use `npm install` only when intentionally changing dependencies; use `npm ci` for normal installation and verification. Do not add a competing lockfile.
 
 ## Operating constraints
 
