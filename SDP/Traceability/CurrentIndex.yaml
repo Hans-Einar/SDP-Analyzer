@@ -1,0 +1,11 @@
+project:
+  name: TBD
+  status: planning
+
+active:
+  sprint: null
+  refactor: null
+  iteration: null
+  slice: null
+
+# Replace template values with project-specific IDs.

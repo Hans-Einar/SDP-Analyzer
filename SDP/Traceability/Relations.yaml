@@ -1,0 +1,10 @@
+requirements: {}
+designs: {}
+sprints: {}
+refactors: {}
+slices: {}
+reviews: {}
+verification: {}
+
+# Map stable IDs to related requirement, design, implementation, review and
+# verification IDs. Replace this template with project-specific relations.
