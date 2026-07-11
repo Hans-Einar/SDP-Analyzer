@@ -1,11 +1,23 @@
 project:
-  name: TBD
-  status: planning
+  id: SDP-ANALYZER
+  name: SDP-Analyzer
+  status: implementation-ready
+  tier: TIER-001
 
 active:
-  sprint: null
+  sprint: SPR-001
   refactor: null
-  iteration: null
-  slice: null
+  iteration: ITR-001
+  slice: SLC-001
 
-# Replace template values with project-specific IDs.
+planning:
+  mandate: SDP/01--Mandate/mandate.md
+  study: STU-001
+  requirements: REQSET-001
+  architecture: ARC-001
+  design_analysis: DAN-001
+  design: DES-001
+  implementation: IMP-001
+  verification_plan: VER-PLAN-001
+
+updated: 2026-07-11
