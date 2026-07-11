@@ -7,3 +7,4 @@
 {"event_id":"EVT-2026-07-11-007","timestamp":"2026-07-11","type":"sprint_opened","subject_id":"SPR-001","status":"active","source":"SDP/Sprints/SPR-001/ScrumIterations.md"}
 {"event_id":"EVT-2026-07-11-008","timestamp":"2026-07-11","type":"iteration_opened","subject_id":"ITR-001","status":"active","parent_id":"SPR-001","source":"SDP/Sprints/SPR-001/ScrumIterations.md"}
 {"event_id":"EVT-2026-07-11-009","timestamp":"2026-07-11","type":"slice_activated","subject_id":"SLC-001","status":"active","parent_id":"ITR-001","source":"SDP/Sprints/SPR-001/ScrumIterations.md"}
+{"event_id":"EVT-2026-07-11-010","timestamp":"2026-07-11","type":"planning_refined","subject_id":"SLC-001","status":"active","reason":"SharedUI-0.1.0.tgz made available locally; SharedUI reuse and anti-duplication constraints made mandatory","sources":["AGENTS-project.md","SDP/06--Design/design.md","SDP/Sprints/SPR-001/ScrumIterations.md","SDP/Sprints/SPR-001/Handoff.md"]}
