@@ -220,17 +220,46 @@ type AnalysisState =
 
 One controller/hook owns the selected source and current analysis result. Core analysis is invoked through an application service. UI filters and selected finding are local derivations.
 
-## 11. Initial page structure
+## 11. SharedUI composition and initial page structure
 
-1. Header/product identity.
-2. Source panel: bundled fixture selector and analyze action.
-3. Compatibility and parse-status summary.
-4. Declared active-work card.
-5. Diagnostics summary.
-6. Findings list with severity, rule ID, title and affected IDs.
-7. Finding detail/provenance panel.
+The repository-root package `SharedUI-0.1.0.tgz` is the required UI dependency for Tier 1. It shall be installed as a repository-relative file dependency. The application entry imports `SharedUI/styles.css` once.
 
-SharedUI is used only where already available and suitable. SLC-001 must not block on SharedUI integration if the dependency or usage contract is not installed; a thin local UI shell is acceptable and recorded as a discovery.
+The normal shell shall use:
+
+- `defineDashboardConfig` for typed dashboard structure and explicit state policy;
+- `DashboardRenderer` for layout resolution;
+- `baselineComponentRegistry` as the base component registry;
+- stable registered keys for any SDP-Analyzer-specific custom components.
+
+The initial dashboard state should remain minimal, for example a selected source/fixture key and, when later needed, selected finding/filter state. Every SharedUI state key must have an explicit validator and `statePolicy` owner/update-source declaration.
+
+Planned page regions and preferred SharedUI components:
+
+1. `topBar`: `TopNav` with product title and compact status.
+2. `leftSidebar` or main source section: `SideNav`, `TabBar` or a narrowly custom source selector only when baseline contracts do not fit.
+3. `main`: `PageHeader` and `Section` group project summary, active work, diagnostics and findings.
+4. Compatibility/status labels: `Badge`.
+5. Durable warnings and unsupported states: `AlertBanner`.
+6. Empty/no-project states: `EmptyState`.
+7. Loading states: `CardSkeleton` or `TableSkeleton`.
+8. Findings/source lists: `DataTable` when its explicit-column string-row contract is sufficient; otherwise a domain-specific registered `FindingsList` component.
+9. `rightSidebar`: `DetailPanel` for concise provenance metadata; a domain-specific `FindingDetail` component is allowed for richer multiline evidence.
+10. Render/runtime failures: `ErrorFallback`.
+
+### SharedUI reuse decision rule
+
+Before creating any local UI component, Codex must check the baseline component contracts. The result must be one of:
+
+- reuse an existing semantic baseline component;
+- compose multiple baseline components in SharedUI views;
+- create a narrowly domain-specific registered component because the baseline contract cannot represent the required SDP data or interaction;
+- record a future SharedUI enhancement when the missing capability is generic and reusable across projects.
+
+It is prohibited to locally recreate generic equivalents of `TopNav`, `PageHeader`, `Section`, `Badge`, `AlertBanner`, `EmptyState`, skeletons, `DataTable`, `DetailPanel`, search/filter/navigation primitives or SharedUI tokens merely for convenience.
+
+Raw `SharedUI/components/shadcn/*` imports are not part of the default design. They require a documented reason that the semantic baseline surface is insufficient and Reviewer approval.
+
+SharedUI config and components remain presentation-only. They must not parse SDP files, normalize entities, determine validation findings or become the owner of the canonical `ProjectSnapshot`.
 
 ## 12. Exact Tier 1 boundary
 
@@ -243,12 +272,14 @@ Tier 1 analyzes bundled fixtures and the three core traceability files. It may d
 - Parser tests cover valid, missing, duplicate-key and malformed-line cases.
 - Normalization tests compare canonical snapshots.
 - Rule tests assert both emitted and absent findings.
-- UI tests assert state rendering and finding provenance presentation.
+- UI tests assert SharedUI-rendered state, component registration and finding provenance presentation.
 - Every implementation Slice runs typecheck, tests and build; UI Slices add rendered checks.
 
 ## 14. Design invariants
 
-- No React/SharedUI import below `src/ui` or an explicit UI adapter.
+- No React/SharedUI import below `src/ui` or an explicit UI composition adapter.
+- No duplicate local design-system primitives when SharedUI already supplies the semantic component.
+- Local custom UI components are domain-specific, registered by stable key and documented with purpose/constraints/props.
 - No source mutation.
 - Every finding is explainable and sourced.
 - Unsupported data never becomes silent success.
