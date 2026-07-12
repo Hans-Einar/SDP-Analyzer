@@ -8,7 +8,7 @@ active:
   sprint: SPR-001
   refactor: null
   iteration: ITR-001
-  slice: SLC-002
+  slice: SLC-003
 
 planning:
   mandate: SDP/01--Mandate/mandate.md
@@ -20,4 +20,4 @@ planning:
   implementation: IMP-001
   verification_plan: VER-PLAN-001
 
-updated: 2026-07-11
+updated: 2026-07-12

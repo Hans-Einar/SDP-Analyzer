@@ -18,8 +18,9 @@ Authorized by `STU-001`, `REQSET-001`, `ARC-001`, `DAN-001`, `DES-001` and `IMP-
 Status: active  
 Iteration ID: `ITR-001`
 
-The Iteration executes the ordered Slice contracts below. `SLC-001` is
-completed and accepted; `SLC-002` is active.
+The Iteration executes the ordered Slice contracts below. `SLC-001` and
+`SLC-002` are completed and accepted. `SLC-003` is completed with final
+independent approval and awaits supervising acceptance.
 
 ---
 
@@ -495,15 +496,310 @@ Completed on 2026-07-12 after `VER-SLC-002` passed. The first
 the correction passed 24 tests and a second fresh Reviewer approved the current
 tree with no remaining actionable finding.
 
-`CurrentIndex.yaml` intentionally remains pointed at
-`SPR-001 / ITR-001 / SLC-002` for supervising acceptance. `SLC-003`
-remains planned and was not begun.
+The supervising architect accepted the committed result at
+`90bd7b6b0474331e54c5716398ca1bc714b995c2` on 2026-07-12. The Master then
+recorded acceptance and activated `SPR-001 / ITR-001 / SLC-003` before any
+SLC-003 product implementation.
 
 ## SLC-003 — Core traceability parsers
 
-Status: planned
+Status: completed
+Slice ID: `SLC-003`
 
-Goal: parse strict CurrentIndex/Relations YAML and line-isolated Ledger NDJSON with source diagnostics and provenance. No cross-file normalization rules.
+### Goal
+
+Implement strict, deterministic, provenance-preserving parsers for
+`SDP/Traceability/CurrentIndex.yaml`, `SDP/Traceability/Relations.yaml` and
+`SDP/Traceability/Ledger.ndjson`.
+
+This Slice parses syntax and supported raw structure only. It does not
+normalize cross-file project entities, resolve relations, derive active work,
+run validation rules or create findings.
+
+### Why now
+
+SLC-002 established safe project-source acquisition, canonical paths,
+provenance and discovery. The next architectural boundary is syntax parsing.
+Parsing must be independently testable and preserve malformed input evidence
+before SLC-004 introduces cross-file normalization.
+
+### Requirements implemented
+
+Primary: `REQ-D-001`, `REQ-D-002`, `REQ-D-004`, `REQ-P-002`,
+`REQ-NF-002`.
+
+Partial/foundation: `REQ-D-005`, `REQ-D-006`, `REQ-P-001`, `REQ-P-003`,
+`REQ-T-001`, `REQ-T-003`, `REQ-S-001`, `REQ-C-002`, `REQ-NF-001`.
+
+SLC-003 does not claim requirements related to cross-file validation, entity
+resolution or UI findings.
+
+### Architecture and design references
+
+`ARC-COMP-002`, `ARC-COMP-003`, `ARC-COMP-004`, `ARC-COMP-011`;
+`ADR-002`, `ADR-003`, `ADR-004`, `ADR-008`; `DEC-STU-002`,
+`DEC-STU-003`, `DEC-STU-006`, `DEC-STU-009`; `DES-001` sections 2, 3,
+6, 8, 9, 12, 13 and 14.
+
+### Required implementation
+
+#### 1. Parser dependency
+
+Add the maintained `yaml` package as an exact dependency and pin it in
+`package.json` and `package-lock.json`. Use native `JSON.parse` for NDJSON
+lines.
+
+Do not add an alternative YAML parser, Markdown parser, graph library, schema
+framework or generic parser-plugin system.
+
+#### 2. Parsed source contract
+
+Implement or refine a presentation-neutral `ParsedSource<T>` contract that
+exposes the source-level `SourceRef`, diagnostics and an optional value. It
+must distinguish successful parsing, partial parsing with diagnostics and
+failed parsing with no value.
+
+Malformed repository content returns sourced diagnostics rather than causing
+an application crash. Programming errors and violated internal invariants may
+still throw.
+
+#### 3. Raw CurrentIndex model
+
+Create a parser-local raw model that preserves supported `project`, `active`
+and `planning` structure plus unknown top-level fields. Active sprint,
+refactor, iteration and slice values may be strings or null only.
+
+Parsed scalars must not be coerced. Invalid active value types produce sourced
+diagnostics; missing fields remain missing; no entity existence or hierarchy
+validation occurs; no default active identifiers are invented.
+
+#### 4. Raw Relations model
+
+Parse Relations into a raw serializable representation preserving top-level
+sections, stable keys, unknown sections, raw relation values and source
+provenance or structured pointers for parsed sections where practical.
+
+Do not transform this into the normalized `Relation` domain model, verify that
+IDs exist or interpret completion evidence.
+
+#### 5. Raw Ledger model
+
+Parse Ledger line by line. Every nonblank line is one independent JSON record.
+Blank lines are ignored deterministically. Valid lines before and after a
+malformed line remain available. Arrays, strings, numbers, booleans and null
+produce line diagnostics rather than records.
+
+Record sequence reflects original source line order rather than valid-record
+count. Every valid record and malformed-line diagnostic identifies the exact
+original line. Do not interpret event semantics or timestamps, validate
+duplicate event IDs or reconstruct state.
+
+#### 6. Source locations and pointers
+
+Use reliable YAML parser range/location information for line and column
+locations and structured pointers where practical. Every parsed source has a
+file-level `SourceRef`; every Ledger record and malformed line has exact line
+provenance; YAML syntax diagnostics carry parser-derived positions.
+
+Document one line/column indexing convention and assert it in tests. Do not
+invent exact locations where the parser cannot supply them reliably.
+
+#### 7. YAML safety
+
+Configure YAML parsing so duplicate mapping keys produce diagnostics or parse
+failure, custom tags cannot execute constructors, aliases cannot cause
+unbounded expansion, arbitrary JavaScript is never evaluated, target
+repository modules are never imported and supported parsing is deterministic.
+Document the selected options and their security rationale in implementation
+notes.
+
+#### 8. Parser interfaces and boundaries
+
+Keep parser functions cohesive, pure and framework-neutral. They consume text
+and provenance supplied by the application boundary. Parser modules must not
+depend on React, SharedUI, browser handles, Node filesystem APIs or the fixture
+adapter.
+
+#### 9. Parser diagnostics
+
+Use stable parser-specific codes such as
+`PARSE_YAML_SYNTAX_ERROR`, `PARSE_YAML_DUPLICATE_KEY`,
+`PARSE_YAML_UNSUPPORTED_ROOT`, `PARSE_CURRENT_INDEX_INVALID_FIELD`,
+`PARSE_RELATIONS_INVALID_SECTION`, `PARSE_LEDGER_INVALID_JSON`,
+`PARSE_LEDGER_NON_OBJECT` and `PARSE_SOURCE_KIND_MISMATCH`.
+
+Do not use `SDP001` through `SDP008`; those identifiers belong to later
+validation rules.
+
+#### 10. Application integration
+
+Add a small presentation-neutral operation that reuses SLC-002 discovery,
+reads the three discovered core files through `ProjectSource`, calls the
+matching parser and returns parser results plus diagnostics. A read failure for
+one file must not erase successful results from the other two.
+
+Do not construct a normalized `ProjectSnapshot`.
+
+#### 11. Fixture contents
+
+Replace the three core fixture placeholders with small valid examples matching
+the installed project profile: CurrentIndex project/active declarations,
+Relations stable sections and references, and several Ledger JSON-object
+lines. Keep deliberately broken inputs in tests or separate tiny fixtures; do
+not duplicate the full live project files.
+
+#### 12. UI boundary
+
+The SharedUI preview may be updated minimally to show truthful parser smoke
+data such as CurrentIndex and Relations parse status, valid Ledger record count
+and parser diagnostic count. UI changes are secondary to parser correctness
+and must reuse SharedUI baseline components.
+
+Do not present project health, resolved active work, normalized entities,
+dangling references, completion-without-verification findings or fake
+validation results. Do not create a local generic parser-status design system.
+
+### Expected modules
+
+A cohesive implementation will normally place parsed-source/raw models and
+CurrentIndex, Relations, Ledger and YAML-location parsing under
+`src/core/parsing`, the discovery/read/parse operation under `src/application`,
+and the valid small examples in the existing fixture adapter. Exact filenames
+may vary without moving responsibility across boundaries.
+
+### Invariants
+
+- Core parsing imports no React or SharedUI.
+- Core parsing imports no browser or Node filesystem API.
+- No arbitrary code execution or custom YAML constructor execution occurs.
+- Duplicate YAML keys are not silently accepted.
+- Valid NDJSON lines survive malformed neighboring lines.
+- Every diagnostic has source provenance when determinable.
+- Every valid Ledger record has exact line provenance.
+- Missing values remain missing.
+- No relation resolution or active hierarchy resolution occurs.
+- No normalized entities, validation rules or findings are introduced.
+- Source input is not mutated.
+- Existing SLC-001 and SLC-002 behavior remains functional.
+- Output ordering is deterministic.
+
+### Explicit non-goals
+
+- Markdown parsing or stable-ID extraction;
+- normalized `Entity`, `Relation` or `LedgerEvent` records;
+- `ProjectSnapshot`;
+- relation endpoint, active hierarchy or contradictory-hierarchy resolution;
+- duplicate stable-ID or completion-without-verification validation;
+- validation-rule registry, finding fingerprints or stale-work detection;
+- File System Access API or Node filesystem adapter;
+- graph visualization, report export, CLI or CI;
+- repair or write-back;
+- broad SharedUI changes;
+- any SLC-004 work.
+
+### Required tests
+
+At minimum, tests shall cover:
+
+1. valid CurrentIndex parsing;
+2. missing optional CurrentIndex fields remain missing;
+3. null active values remain null;
+4. non-string active IDs diagnose without coercion;
+5. CurrentIndex duplicate keys are rejected or diagnosed;
+6. malformed CurrentIndex YAML includes source location;
+7. non-object CurrentIndex root is diagnosed;
+8. unknown CurrentIndex fields are preserved or explicitly diagnosed;
+9. valid Relations parsing;
+10. unknown Relations top-level sections are preserved;
+11. malformed Relations YAML is isolated to that source;
+12. duplicate Relations stable keys are rejected or diagnosed;
+13. non-object Relations root is diagnosed;
+14. relation targets are not resolved or validated;
+15. valid Ledger object lines parse in order;
+16. blank Ledger lines are handled deterministically;
+17. a malformed middle Ledger line does not remove valid neighbors;
+18. non-object Ledger values are diagnosed;
+19. exact Ledger line provenance is asserted;
+20. Ledger sequence reflects original source order;
+21. a final Ledger line without a newline parses;
+22. repeated Ledger parse output is deterministic;
+23. one failed core-file read does not erase other parse results;
+24. SLC-002 discovery is reused rather than duplicated;
+25. parser modules contain no React, SharedUI or platform filesystem dependency;
+26. existing SLC-002 discovery tests remain passing; and
+27. rendered UI smoke remains passing if UI changes.
+
+### Verification
+
+Run and record exact outcomes for:
+
+1. `npm ci`;
+2. `npm run typecheck`;
+3. `npm test`;
+4. `npm run build`;
+5. `npm ls SharedUI yaml --depth=0`;
+6. `git diff --check`.
+
+Run lint only if configured. Also inspect duplicate-key behavior, YAML
+custom-tag safety, malformed NDJSON recovery, the location convention, parser
+import boundaries and absence of SLC-004 normalization. Perform a rendered
+smoke check if the UI changes.
+
+Create `VER-SLC-003` only after real verification.
+
+### Independent review
+
+Use a fresh independent Reviewer after implementation and Master verification.
+The Reviewer must inspect the complete contract, exact parser dependency and
+options, duplicate-key handling, custom-tag and alias safety, YAML and NDJSON
+provenance accuracy, malformed-line recovery, raw-model fidelity, unknown-data
+preservation, absence of normalization/validation, failure isolation, actual
+verification evidence and traceability consistency.
+
+Create `REV-SLC-003` only after independent review. If changes are required,
+delegate a bounded correction Worker, repeat applicable verification and use a
+fresh review context.
+
+### Completion signal
+
+SLC-003 is complete when all three core traceability formats parse into raw
+typed records; malformed repository input becomes sourced diagnostics; valid
+Ledger records survive malformed lines; duplicate YAML keys are not silently
+accepted; output is deterministic; unknown data is not silently discarded or
+reinterpreted; no cross-file normalization or validation exists; verification
+passes; fresh independent review approves; and traceability records real
+evidence.
+
+`CurrentIndex.yaml` must remain on `SLC-003` after completion. `SLC-004`
+must remain planned and untouched.
+
+### Discoveries policy
+
+Resolve only discoveries essential to parser correctness that do not alter
+accepted architecture or requirements. Record, but do not implement, Markdown
+entity extraction, historical SDP schema adapters, normalized entity design
+changes, rule-engine concerns, browser or Node acquisition, stale-work policy,
+graph/report/repair features and SharedUI package improvements.
+
+If implementation requires changing architecture, requirements or Tier
+boundaries, stop and return the conflict to the supervising architect.
+
+### Stop condition
+
+Stop immediately after SLC-003 verification, review and traceability updates.
+Do not begin `SLC-004`.
+
+### Completion record
+
+Completed on 2026-07-12 after `VER-SLC-003` passed and the initial
+`REV-SLC-003` changes-required findings were corrected by a fresh bounded
+Worker. Master correction verification passed 36 focused and 65 full tests;
+the second fresh independent Reviewer approved the corrected tree with no
+remaining actionable finding.
+
+`CurrentIndex.yaml` intentionally remains pointed at
+`SPR-001 / ITR-001 / SLC-003` for supervising acceptance. `SLC-004` remains
+planned, untouched and unauthorized.
 
 ## SLC-004 — Normalized traceability snapshot
 

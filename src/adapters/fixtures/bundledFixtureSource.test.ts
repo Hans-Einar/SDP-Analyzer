@@ -60,6 +60,25 @@ describe("bundledFixtureSource", () => {
     });
   });
 
+  it("contains small valid core traceability examples instead of placeholders", async () => {
+    const currentIndex = await bundledFixtureSource.readText(
+      "SDP/Traceability/CurrentIndex.yaml",
+    );
+    const relations = await bundledFixtureSource.readText(
+      "SDP/Traceability/Relations.yaml",
+    );
+    const ledger = await bundledFixtureSource.readText(
+      "SDP/Traceability/Ledger.ndjson",
+    );
+
+    expect(currentIndex.text).toContain("slice: SLC-003");
+    expect(relations.text).toContain("SLC-003:");
+    expect(ledger.text.trim().split("\n")).toHaveLength(3);
+    expect([currentIndex.text, relations.text, ledger.text].join("\n")).not.toContain(
+      "Placeholder",
+    );
+  });
+
   it("fails explicitly for an unknown canonical path", async () => {
     await expect(
       bundledFixtureSource.readText("SDP/Unknown.md"),

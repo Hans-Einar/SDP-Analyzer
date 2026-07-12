@@ -1,7 +1,7 @@
-# Handoff — SLC-002
+# Handoff — SLC-003
 
-Status: SLC-002 completed; awaiting supervising acceptance
-Active Slice: `SLC-002`
+Status: SLC-003 completed; awaiting supervising acceptance
+Active Slice: `SLC-003`
 Sprint: `SPR-001`  
 Iteration: `ITR-001`
 
@@ -11,8 +11,10 @@ The supervising architect accepted `SLC-001` on 2026-07-11 after passing
 `VER-SLC-001` evidence and final `REV-SLC-001` approval. The tracked
 `SharedUI-0.1.0.tgz` resolves the former reproducibility concern.
 
-`SLC-002` is completed with passing `VER-SLC-002` evidence and final
-`REV-SLC-002` approval. It establishes pure repository-path safety, readonly
+The supervising architect accepted `SLC-002` on 2026-07-12 at committed state
+`90bd7b6b0474331e54c5716398ca1bc714b995c2`, after passing
+`VER-SLC-002` evidence and final `REV-SLC-002` approval. It establishes pure
+repository-path safety, readonly
 source/provenance and diagnostics contracts, the exact 14-file fixture, and
 content-blind deterministic discovery with complete, partial and unknown
 profile states.
@@ -22,15 +24,37 @@ The first review required one correction: a rejected source listing must report
 That bounded correction added a permanent regression test, passed the final
 24-test suite and received fresh independent approval.
 
-`CurrentIndex.yaml` points to `SPR-001 / ITR-001 / SLC-002`.
-`Relations.yaml` records SLC-001 and SLC-002 as completed and relates the
-real SLC-002 verification/review records. Ledger history records activation,
-verification, the initial review finding, correction, final approval and
-completion without rewriting earlier events.
+`CurrentIndex.yaml` points to `SPR-001 / ITR-001 / SLC-003`.
+`Relations.yaml` records SLC-001, SLC-002 and SLC-003 as completed and relates
+the real SLC-003 verification/review records. Ledger history records
+SLC-002 activation, verification, the initial review finding, correction,
+final approval, completion and supervising acceptance without rewriting
+earlier events, followed by SLC-003 activation.
 
-`CurrentIndex.yaml` intentionally remains on `SLC-002` for supervising
-acceptance. `SLC-003` remains planned and is not authorized. No commit, push
-or pull request was created.
+SLC-003 is authorized only for strict raw CurrentIndex/Relations YAML and
+line-isolated Ledger NDJSON parsing, sourced diagnostics, a presentation-neutral
+discovery/read/parse operation and optional minimal truthful parser smoke. It
+must not normalize cross-file entities, resolve active work or relations, run
+validation rules, create findings or begin SLC-004. No commit, push or pull
+request is authorized.
+
+The bounded Worker implementation and initial Master `VER-SLC-003` gates pass.
+Fresh `REV-SLC-003` nevertheless requires correction: multi-document YAML is
+silently truncated under the selected log level, unsafe integers are exposed
+as rounded raw values, and README remains on its SLC-002 description. SLC-003
+remains active while a bounded correction and repeated verification/review are
+performed.
+
+A fresh bounded Worker corrected all three findings. Master correction checks
+pass with 36 focused and 65 full tests; ledger event 027 records the correction.
+The second fresh independent Reviewer reproduced the corrected behavior and all
+applicable gates, approved the current tree and found no remaining actionable
+issue. Ledger events 028-029 record final approval and SLC-003 completion.
+
+`CurrentIndex.yaml` intentionally remains on
+`SPR-001 / ITR-001 / SLC-003` for supervising acceptance. SLC-004 remains
+planned, untouched and unauthorized. No commit, push or pull request was
+created.
 
 ## Original Codex Master prompt (fulfilled)
 

@@ -115,7 +115,7 @@ tracked in the repository, preserving the local file dependency.
 
 ## SLC-002 Worker Implementation
 
-Status: completed; final independent review approved; awaiting supervising acceptance
+Status: completed; final independent review approved; supervising architect accepted
 Slice: `SLC-002`
 Sprint: `SPR-001`
 Iteration: `ITR-001`
@@ -323,5 +323,333 @@ approved with no remaining actionable finding.
 `Relations.yaml` now records SLC-002 completed and relates
 `VER-SLC-002` and `REV-SLC-002`. Ledger events 018-022 record
 verification, initial changes-required review, correction, final approval and
-Slice completion. `CurrentIndex.yaml` remains on SLC-002 for supervising
-acceptance; SLC-003 remains planned and untouched.
+Slice completion. The supervising architect accepted committed state
+`90bd7b6b0474331e54c5716398ca1bc714b995c2` on 2026-07-12.
+`CurrentIndex.yaml` now points to SLC-003, and SLC-003 was activated through
+the required Master traceability transition before product implementation.
+
+---
+
+## SLC-003 Implementation
+
+Status: completed; final independent review approved; awaiting supervising acceptance
+Slice: `SLC-003`
+Sprint: `SPR-001`
+Iteration: `ITR-001`
+Date: 2026-07-12
+
+The Master re-anchored from the complete repository evidence at accepted
+commit `90bd7b6b0474331e54c5716398ca1bc714b995c2`, confirmed SLC-002 has
+passing `VER-SLC-002` evidence and final approved `REV-SLC-002`, and recorded
+the supervising architect acceptance before activating SLC-003.
+
+Before any product implementation, the complete SLC-003 parser contract was
+expanded in `ScrumIterations.md`, `CurrentIndex.yaml` was advanced to SLC-003,
+the SLC-003 relation was expanded and marked active, and ledger events 023-024
+were appended. SLC-001 and SLC-002 remain completed. SLC-004 remains planned
+and untouched.
+
+---
+
+## SLC-003 Worker Implementation
+
+Status: bounded Worker implementation complete; pending Master verification and
+fresh independent review
+Slice: `SLC-003`
+Sprint: `SPR-001`
+Iteration: `ITR-001`
+Date: 2026-07-12
+
+This section records Worker implementation and command evidence only. It does
+not create or claim `VER-SLC-003`, `REV-SLC-003`, Slice completion, acceptance
+or a transition to SLC-004. The Master-authored activation changes to Scrum,
+Handoff, CurrentIndex, Relations and Ledger were preserved.
+
+### Dependency and parser-safety decisions
+
+- Added only `yaml` `2.9.0` as an exact direct runtime dependency in
+  `package.json` and `package-lock.json`. NDJSON uses native `JSON.parse` per
+  nonblank line. No second parser, Markdown parser, schema framework, graph
+  library or parser-plugin system was added.
+- YAML uses `parseDocument` and `LineCounter` with explicit YAML 1.2 `core`
+  schema, `strict: true`, `uniqueKeys: true`, `stringKeys: true`, `merge: false`,
+  `intAsBigInt: false`, `keepSourceTokens: false`, `prettyErrors: false` and
+  silent package logging. `customTags` is a frozen empty array and
+  `resolveKnownTags` is false, so no supplied or known extension constructor is
+  available. The options object itself is frozen.
+- Conversion uses `document.toJS({ mapAsMap: false, maxAliasCount: 32 })` with
+  no reviver. A subsequent plain serializable-value conversion rejects cyclic
+  aliases, non-finite numbers and non-plain objects. Parser errors, unresolved
+  tags, alias-limit failures and unsafe serialization return stable sourced
+  diagnostics rather than throwing malformed repository content through the
+  application boundary.
+- Permanent tests cover duplicate keys, a `!!js/function`-looking custom tag
+  without execution, excessive alias expansion, a cyclic alias and exact
+  malformed-YAML locations. Static tests and scans cover React, SharedUI,
+  browser/Node filesystem, fixture, eval, dynamic-import and SLC-004 boundaries.
+
+### Contracts and behavior
+
+- Added `ParsedSource<T>` with a file-level `SourceRef`, readonly diagnostics
+  and optional value, plus JSON-serializable `RawValue`/`RawObject` contracts.
+- `RawCurrentIndex` retains the complete root in `fields`, raw `project` and
+  `planning` values, unknown top-level/active data and structured field sources.
+  Its typed active declaration accepts only string or null values. Invalid
+  values remain in raw fields, emit `PARSE_CURRENT_INDEX_INVALID_FIELD`, and are
+  not coerced or copied into typed active properties. Missing properties remain
+  absent. No referenced ID is resolved.
+- `RawRelations` retains every top-level value and source order, exposes raw
+  sections/stable entries, and records section/entry pointers and parser ranges
+  where the YAML AST supplies them. Known installed-profile sections with a
+  non-map value emit `PARSE_RELATIONS_INVALID_SECTION` while the raw value
+  remains available. Unknown sections are preserved without relation or
+  completion interpretation.
+- `RawLedger` contains raw JSON-object records only. Each record sequence is the
+  1-based original source line. Blank lines are ignored; non-object JSON and
+  malformed JSON become line diagnostics; valid neighboring records survive;
+  duplicate IDs and event/timestamp meaning are not inspected; and a final
+  unterminated line parses normally.
+- Location convention is 1-based line and column, start-inclusive and
+  end-exclusive. YAML ranges and syntax positions come only from the package
+  `LineCounter` and AST/error offsets. Ledger provenance covers the exact
+  non-newline line text from column 1 through `line.length + 1`. When YAML has
+  only a reliable pointer, the parser emits that pointer without fabricating a
+  range.
+- Stable parser codes include `PARSE_SOURCE_KIND_MISMATCH`,
+  `PARSE_SOURCE_PATH_MISMATCH`, `PARSE_YAML_SYNTAX_ERROR`,
+  `PARSE_YAML_DUPLICATE_KEY`, `PARSE_YAML_UNSUPPORTED_TAG`,
+  `PARSE_YAML_ALIAS_LIMIT`, `PARSE_YAML_RESOURCE_LIMIT`,
+  `PARSE_YAML_NON_SERIALIZABLE_VALUE`, `PARSE_YAML_UNSUPPORTED_ROOT`,
+  `PARSE_CURRENT_INDEX_INVALID_FIELD`, `PARSE_RELATIONS_INVALID_SECTION`,
+  `PARSE_LEDGER_INVALID_JSON`, `PARSE_LEDGER_NON_OBJECT` and
+  `PARSE_APPLICATION_READ_FAILED`. No `SDP001` through `SDP008` validation code
+  was introduced.
+- Added presentation-neutral `loadCoreTraceability(ProjectSource)`. It calls
+  SLC-002 `discoverProject`, reads only the three discovered core sources in a
+  fixed order, calls the matching parsers and aggregates discovery/read/parser
+  diagnostics. A read or parse failure for one source does not erase successful
+  results from the other sources. It creates no `ProjectSnapshot`.
+- Replaced exactly the CurrentIndex, Relations and Ledger bundled placeholder
+  bodies with small valid installed-profile examples. The other eleven fixture
+  files and the deterministic 14-path contract remain unchanged. Deliberately
+  malformed inputs live in tests.
+
+### Required-test coverage
+
+- Cases 1-8: CurrentIndex tests cover valid parsing, missing properties, nulls,
+  invalid types without coercion, duplicates, syntax locations, unsupported
+  roots and unknown-field preservation.
+- Cases 9-14: Relations tests cover valid raw sections/entries, unknown sections,
+  source-isolated malformed YAML, duplicate stable keys, unsupported roots,
+  invalid known sections and deliberately unresolved targets.
+- Cases 15-22: Ledger tests cover ordered object lines, deterministic blank-line
+  handling, malformed-middle recovery, every JSON non-object kind, exact line
+  provenance, original-line sequence, no-final-newline input and repeated
+  deterministic output.
+- Cases 23-24: application tests cover one failed read with successful neighbors
+  and assert exactly one SLC-002 discovery listing plus reads of its three
+  discovered paths.
+- Case 25: the permanent raw-source boundary test and focused scans cover parser
+  imports, platform globals, fixture coupling, code execution and SLC-004 scope.
+- Cases 26-27: the complete suite retains the SLC-002 discovery tests and the
+  unchanged jsdom-rendered SharedUI smoke test.
+
+### Development corrections and final Worker evidence
+
+- The intentional `npm install yaml@2.9.0 --save-exact` succeeded and found zero
+  vulnerabilities, but npm reported a non-fatal Windows `EPERM` cleanup warning
+  for an unrelated optional Rolldown WASI directory. The required later
+  lockfile-driven `npm ci` completed cleanly.
+- The first development typecheck after authoring parser files failed with two
+  strict `exactOptionalPropertyTypes`/`noUncheckedIndexedAccess` errors in an
+  invalid-active diagnostic. Explicit missing-value handling and a sourced
+  pointer fallback corrected them; every subsequent typecheck passed.
+- The first focused run passed 39/40 tests and found one false positive in the
+  new static boundary test: its broad `document.` expression matched the local
+  YAML `document` value. The check was narrowed to actual DOM APIs; the repeated
+  focused run passed all 40 tests.
+- The first `git diff --check` after appending these notes found four Markdown
+  hard-break trailing-space lines in the new section. They were removed before
+  the final whitespace check.
+- Final `npm ci`: passed; added 270 packages, audited 271 packages in 10 seconds
+  and found zero vulnerabilities.
+- Final `npm run typecheck`: passed with no TypeScript diagnostics.
+- Final `npm test`: passed with Vitest `4.1.10`; 9 test files and 61 tests
+  passed, including existing SLC-001/SLC-002 and rendered UI coverage.
+- Final `npm run build`: passed with Vite `8.1.4`; 1,976 modules transformed and
+  0.53 kB HTML, 72.88 kB CSS and 510.87 kB JavaScript assets emitted. The
+  pre-existing non-failing greater-than-500-kB chunk warning remains.
+- `npm ls SharedUI yaml --depth=0`: passed and reported `SharedUI@0.1.0` and
+  direct `yaml@2.9.0`.
+- Focused safety/provenance/boundary run: 3 files and 24 tests passed for
+  CurrentIndex safety/location, Ledger recovery/provenance and raw-source
+  boundaries. A second focused run passed 2 files and 12 tests for Relations
+  raw fidelity/provenance and application failure isolation/discovery reuse.
+- Static boundary and scope scans found no forbidden UI/platform filesystem,
+  eval/Function/dynamic import, fixture coupling, SLC-004 normalized model,
+  validation/fingerprint, Markdown parser, filesystem-adapter or write surface
+  in parser implementation or `loadCoreTraceability.ts`.
+- Final `git diff --check`: passed with only Git's existing LF-to-CRLF
+  working-copy warnings.
+- No lint command is configured. No UI source changed, so no new manual browser
+  smoke was claimed; the unchanged rendered UI test passed in the 61-test suite.
+
+### Worker-changed files and stop boundary
+
+- `package.json`, `package-lock.json`
+- `src/core/parsing/ParsedSource.ts`
+- `src/core/parsing/RawValue.ts`
+- `src/core/parsing/yamlSupport.ts`
+- `src/core/parsing/parseCurrentIndex.ts` and `.test.ts`
+- `src/core/parsing/parseRelations.ts` and `.test.ts`
+- `src/core/parsing/parseLedger.ts` and `.test.ts`
+- `src/core/parsing/parserBoundaries.test.ts`
+- `src/application/loadCoreTraceability.ts` and `.test.ts`
+- `src/adapters/fixtures/bundledFixtureSource.ts` and `.test.ts`
+- `SDP/Sprints/SPR-001/implementationNotes.md` (this appended Worker section)
+
+The Worker did not edit Scrum, Handoff, CurrentIndex, Relations, Ledger,
+verification or review state; their existing Master activation changes remain
+untouched. No commit, staging, push or pull request was performed. No Markdown
+parser, normalized entity/relation/event, snapshot, resolution, validation,
+finding, filesystem adapter, graph/report/repair/CLI/CI or UI feature was added.
+Work stopped at the SLC-003 implementation boundary; SLC-004 was not begun.
+
+### Master verification
+
+The Master read the complete product/test diff and independently reran the
+lockfile-driven clean install, strict typecheck, complete 61-test suite,
+production build, exact direct-dependency check, focused 24-test safety and
+provenance suite, focused 12-test Relations/application suite, whitespace,
+traceability and implementation-only boundary/scope checks. All applicable
+gates passed. Exact commands, outputs, the corrected static-scan false positive
+and limitations are recorded in `SDP/Verification/VER-SLC-003.md`.
+
+`VER-SLC-003` is related in `Relations.yaml` and recorded by append-only ledger
+event 025. SLC-003 remains active pending a fresh independent Reviewer;
+`CurrentIndex.yaml` remains on SLC-003 and SLC-004 remains planned and
+untouched.
+
+### Initial independent review
+
+Fresh `REV-SLC-003` independently reproduced all standard and focused gates
+but identified two medium raw-fidelity defects and one low documentation defect.
+With `logLevel: "silent"`, `yaml@2.9.0` `parseDocument` suppresses its
+`MULTIPLE_DOCS` error and silently discards documents after the first. Finite
+integers outside JavaScript's safe range are exposed as rounded values in YAML
+and native-JSON raw output without an explicit diagnostic. README also still
+describes SLC-002, no parser and 14 placeholder bodies.
+
+The initial disposition is changes required. Relations and ledger event 026
+record that real review result. SLC-003 remains active pending a bounded
+correction, repeated verification and fresh independent re-review. SLC-004
+remains planned and untouched.
+
+### SLC-003 Review Correction Worker
+
+Status: bounded correction implemented; pending Master verification and fresh
+independent re-review
+Date: 2026-07-12
+
+This appended Worker section addresses only the three findings in
+`REV-SLC-003`. It does not change or claim Master verification, review
+approval, Slice completion, supervising acceptance or a transition to
+`SLC-004`.
+
+#### Corrections
+
+- Changed only the YAML package log level from `silent` to `error`. Under
+  `yaml@2.9.0`, this remains quiet for warnings while retaining the structural
+  `MULTIPLE_DOCS` error that `silent` suppresses. The shared YAML parser maps
+  that package error to `PARSE_YAML_MULTIPLE_DOCUMENTS` and returns no value.
+  CurrentIndex and Relations regressions contain explicit first and discarded
+  second documents, assert the dedicated code and assert the package-derived
+  range beginning at the second document marker. YAML 1.2/core schema,
+  strictness, unique string keys, merge behavior, tag controls, alias bound and
+  all other parsing/materialization options remain unchanged.
+- Extended shared raw conversion to reject integer numbers for which
+  `Number.isSafeInteger` is false, while retaining its existing finite-number
+  rejection. YAML rejects the complete source with
+  `PARSE_YAML_UNSAFE_INTEGER` and file provenance rather than exposing a
+  rounded raw value. Ledger retains native `JSON.parse`, diagnoses only the
+  affected line with `PARSE_LEDGER_UNSAFE_INTEGER`, omits that record and keeps
+  valid neighboring records with their original sequences. Permanent tests use
+  literal `9007199254740993`, assert that rounded `9007199254740992` is not
+  exposed and assert exact Ledger line provenance.
+- Updated `README.md` from the stale SLC-002/no-parser description to the
+  active SLC-003 raw CurrentIndex/Relations/Ledger behavior, the three compact
+  valid core fixture bodies, `loadCoreTraceability`, current parser safety and
+  partial-failure boundaries. It explicitly states that the UI remains a
+  discovery preview and that Markdown parsing, normalization, resolution,
+  state reconstruction, validation, findings and SLC-004 behavior remain
+  absent.
+
+#### Correction Worker changed files
+
+- `README.md`
+- `src/core/parsing/RawValue.ts`
+- `src/core/parsing/yamlSupport.ts`
+- `src/core/parsing/parseLedger.ts`
+- `src/core/parsing/parseCurrentIndex.test.ts`
+- `src/core/parsing/parseRelations.test.ts`
+- `src/core/parsing/parseLedger.test.ts`
+- `SDP/Sprints/SPR-001/implementationNotes.md` (this appended section only)
+
+#### Correction Worker evidence
+
+- Focused corrected/boundary command
+  `npm test -- src/core/parsing/parseCurrentIndex.test.ts src/core/parsing/parseRelations.test.ts src/core/parsing/parseLedger.test.ts src/core/parsing/parserBoundaries.test.ts --reporter=verbose`:
+  passed; 4 test files and all 36 tests passed. The four new regression cases
+  cover CurrentIndex and Relations multi-document rejection, YAML unsafe
+  integer rejection and line-isolated Ledger unsafe integer rejection.
+- `npm run typecheck`: passed with no TypeScript diagnostics.
+- `npm test`: passed with Vitest `4.1.10`; 9 test files and all 65 tests passed,
+  including preserved SLC-001/SLC-002 and rendered UI coverage.
+- `npm run build`: passed with Vite `8.1.4`; 1,976 modules transformed and
+  0.53 kB HTML, 72.91 kB CSS and 510.87 kB JavaScript emitted. The existing
+  non-failing greater-than-500-kB chunk warning remains.
+- `npm ls SharedUI yaml --depth=0`: passed and reported `SharedUI@0.1.0` and
+  direct `yaml@2.9.0`.
+- Implementation-only boundary scans found zero forbidden UI/framework,
+  platform/execution, mutation or SLC-004 normalized-model/validation matches.
+  The parser-call scan found only the `parseDocument` import/call in
+  `yamlSupport.ts` and native `JSON.parse` in `parseLedger.ts`.
+- `git diff --check`: passed; output contained only the repository's existing
+  Windows LF-to-CRLF working-copy warnings.
+- `npm ci` was not rerun because the correction changes no dependency or
+  lockfile. No lint command is configured.
+
+The Worker did not edit Scrum, Handoff, CurrentIndex, Relations, Ledger,
+verification/review records, package files, fixture/application/UI source or
+any SLC-004 surface. No commit, staging, push or pull request was performed.
+SLC-003 remains the active Slice with review changes required; SLC-004 remains
+planned. Work stopped at the SLC-003 correction boundary.
+
+#### Master correction verification
+
+The Master inspected the exact correction and independently reran a clean
+install, strict typecheck, the focused 4-file/36-test parser and boundary suite,
+the full 9-file/65-test suite, production build, exact dependency resolution,
+implementation-only boundary/scope scans, README stale-text checks, UI no-diff,
+traceability syntax/state and `git diff --check`. All applicable checks passed;
+exact outputs are appended in `SDP/Verification/VER-SLC-003.md`.
+
+Ledger event 027 records the verified correction. The initial
+changes-required review remains unchanged until a fresh independent Reviewer
+reassesses the corrected tree. SLC-003 remains active and SLC-004 remains
+planned and untouched.
+
+#### Final independent review and completion
+
+The second fresh Reviewer independently reproduced clean installation,
+typecheck, 36 focused tests, 65 full tests, production build, dependency,
+multi-document, unsafe-integer, retained safety, application/fixture,
+boundary, README, UI no-diff, whitespace and traceability evidence. All three
+original findings are resolved and no new actionable finding was identified.
+The appended final `REV-SLC-003` disposition is approved.
+
+`Relations.yaml` now records SLC-003 completed and `REV-SLC-003` approved.
+Ledger events 025-029 record initial verification, changes-required review,
+bounded correction, final approval and Slice completion without rewriting
+earlier history. `CurrentIndex.yaml` remains on SLC-003 for supervising
+acceptance. SLC-004 remains planned and untouched.

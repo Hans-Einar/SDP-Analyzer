@@ -24,11 +24,11 @@ const FIXTURE_TEXT_BY_PATH: Readonly<Record<string, string>> = Object.freeze({
   "SDP/Sprints/SPR-001/ScrumIterations.md":
     "Placeholder bundled fixture Sprint plan.\n",
   "SDP/Traceability/CurrentIndex.yaml":
-    "Placeholder bundled fixture CurrentIndex.\n",
+    "project:\n  id: FIXTURE-PROJECT\n  name: Bundled minimal fixture\n  status: active\nactive:\n  sprint: SPR-001\n  refactor: null\n  iteration: ITR-001\n  slice: SLC-003\nplanning:\n  requirements: REQSET-001\n",
   "SDP/Traceability/Ledger.ndjson":
-    "Placeholder bundled fixture Ledger.\n",
+    '{"event_id":"EVT-001","type":"sprint_opened","subject_id":"SPR-001"}\n{"event_id":"EVT-002","type":"iteration_opened","subject_id":"ITR-001","parent_id":"SPR-001"}\n{"event_id":"EVT-003","type":"slice_activated","subject_id":"SLC-003","parent_id":"ITR-001"}\n',
   "SDP/Traceability/Relations.yaml":
-    "Placeholder bundled fixture Relations.\n",
+    "documents:\n  REQSET-001:\n    path: SDP/03--Requirements/requirements.md\nsprints:\n  SPR-001:\n    requirements: [REQ-F-001]\niterations:\n  ITR-001:\n    sprint: SPR-001\n    slices: [SLC-003]\nslices:\n  SLC-003:\n    sprint: SPR-001\n    iteration: ITR-001\n    status: active\n",
   "SDP/Verification/verification-plan.md":
     "Placeholder bundled fixture verification plan.\n",
 });
