@@ -1,6 +1,6 @@
 # SLC-001 Implementation Notes
 
-Status: completed; independent review approved; awaiting supervising acceptance  
+Status: completed; independent review approved; supervising architect accepted
 Slice: `SLC-001`  
 Sprint: `SPR-001`  
 Iteration: `ITR-001`  
@@ -29,9 +29,9 @@ current tree with no remaining actionable finding.
 
 `Relations.yaml` now relates `SLC-001` to `VER-SLC-001` and
 `REV-SLC-001`; the ledger records verification, the initial review finding,
-the correction, final approval, and Slice completion. `CurrentIndex.yaml`
-intentionally remains pointed at `SPR-001 / ITR-001 / SLC-001` for supervising
-acceptance. `SLC-002` remains planned.
+the correction, final approval, and Slice completion. The supervising architect
+accepted SLC-001 on 2026-07-11; `CurrentIndex.yaml` now points to
+`SPR-001 / ITR-001 / SLC-002`.
 
 ## Decisions
 
@@ -99,7 +99,8 @@ The successful production build also reports a non-failing warning that the gene
 - `SDP/Sprints/SPR-001/Handoff.md`
 - `SDP/Sprints/SPR-001/implementationNotes.md`
 
-The pre-existing untracked `SharedUI-0.1.0.tgz` remains intact and is not an implementation-authored file.
+The supplied `SharedUI-0.1.0.tgz` was not implementation-authored and is now
+tracked in the repository, preserving the local file dependency.
 
 ## Limitations and stop boundary
 
@@ -109,3 +110,218 @@ The pre-existing untracked `SharedUI-0.1.0.tgz` remains intact and is not an imp
   integrated those records and statuses only after real verification and final
   Reviewer approval.
 - Work stopped at `SLC-001`; `SLC-002` was not started.
+
+---
+
+## SLC-002 Worker Implementation
+
+Status: completed; final independent review approved; awaiting supervising acceptance
+Slice: `SLC-002`
+Sprint: `SPR-001`
+Iteration: `ITR-001`
+Date: 2026-07-11
+
+This section records the bounded Worker pass only. It does not create or claim
+`VER-SLC-002`, `REV-SLC-002`, Slice completion, or supervising acceptance.
+The Master-authored activation changes to `ScrumIterations.md`, `Handoff.md`,
+`CurrentIndex.yaml`, `Relations.yaml`, and ledger events 016-017 were preserved.
+
+### Decisions
+
+- Added the exact readonly `SourceKind`, `SourceRef`, `DiagnosticSeverity` and
+  `Diagnostic` contracts from `DES-001`, without parser records, entities,
+  validation findings or UI types.
+- Implemented path normalization as a pure discriminated result. It converts
+  backslashes, canonically collapses redundant separators, and explicitly
+  rejects empty, rooted/absolute, drive-letter, `.` and `..` paths. The
+  implementation imports no Node or browser filesystem API.
+- Kept `ProjectSource` unchanged and read-only; its existing list/read boundary
+  was already sufficient for discovery and canonical fixture reads.
+- Replaced the one-file smoke fixture with the exact 14 placeholder text files
+  named by the SLC-002 contract. Fixture listings use deterministic code-point
+  path ordering. Fixture reads require an exact known canonical path and throw
+  typed `FixtureSourceReadError` codes for unsafe, non-canonical and unknown
+  paths. Internal fixture data is frozen and no mutation API exists.
+- Added `discoverProject(ProjectSource)`, which calls `listFiles()` only,
+  normalizes and canonically sorts paths, classifies recognized extensions,
+  records standard directory presence, locates the exact three core files, and
+  attaches `SourceRef` provenance to every discovered file.
+- Discovery support is deliberately structural in this Slice: all three exact
+  core traceability paths produce `sdp-toolkit-current / supported`; any missing
+  core path produces `partial` plus a stable
+  `DISCOVERY_MISSING_CORE_SOURCE` diagnostic. File contents, IDs, statuses and
+  active-work semantics are not inspected. Standard directory presence is
+  reported separately and does not add content/profile inference.
+- Because the authoritative `SourceKind` union has no `unknown` member,
+  unrecognized extensions remain visible as `synthetic` with an explicit
+  informational discovery diagnostic. The bundled fixture contains no such
+  source.
+- Retained the SLC-001 sample text read in the application preview, but now runs
+  discovery first and exposes truthful file count, 3/3 core-source count,
+  profile support and discovery diagnostic count. The SharedUI dashboard reuses
+  only its existing `PageHeader`, `Section`, `Badge`, `CardSkeleton`,
+  `AlertBanner`, `DetailPanel`, `TopNav` and renderer/config surfaces; no local
+  component or primitive was added.
+
+### Worker-changed files
+
+- `README.md`
+- `src/core/source/SourceRef.ts`
+- `src/core/source/projectPath.ts`
+- `src/core/source/projectPath.test.ts`
+- `src/core/diagnostics/Diagnostic.ts`
+- `src/core/discovery/ProjectDiscoveryManifest.ts`
+- `src/core/discovery/discoverProject.ts`
+- `src/core/discovery/discoverProject.test.ts`
+- `src/adapters/fixtures/bundledFixtureSource.ts`
+- `src/adapters/fixtures/bundledFixtureSource.test.ts`
+- `src/application/loadSourcePreview.ts`
+- `src/ui/dashboardConfig.ts`
+- `src/ui/App.test.tsx`
+- `SDP/Sprints/SPR-001/implementationNotes.md` (this appended section only)
+
+### Tests and coverage
+
+- Path tests cover canonical input, Windows separators, redundant separators,
+  rooted/absolute and UNC-like input, drive letters, empty input, `.` segments,
+  `..` traversal and Windows-form traversal.
+- Fixture tests assert the exact 14 paths and deterministic repeated ordering,
+  a known canonical read, and explicit unknown, unsafe and non-canonical read
+  failures.
+- Discovery tests assert all three exact core sources, all seven lifecycle
+  directories plus standard directory booleans, 14 provenance-bearing files,
+  YAML/JSON/NDJSON/Markdown classification, canonical sorting after Windows
+  input, repeated deterministic manifests, missing-core partial support and
+  diagnostic output, rejected traversal, and zero `readText()` calls.
+- The existing jsdom-rendered application test now verifies the SharedUI shell,
+  fixture-ready state, first canonical file, 14 files, 3/3 core files,
+  `supported` profile and zero discovery diagnostics.
+
+### Worker command evidence
+
+- An early `npm run typecheck` development check failed with four authoring
+  errors: three unsupported Vitest matcher type arguments and one invalid
+  TypeScript filter predicate. Those were corrected before verification.
+- A subsequent `npm run typecheck` passed and `npm test` passed with 4 test
+  files and 22 tests before the final recognized-extension assertion was added.
+- `npm ci`: passed; added 269 packages, audited 270 packages in 11 seconds, and
+  reported zero vulnerabilities.
+- Final `npm run typecheck`: passed with no TypeScript diagnostics.
+- Final `npm test`: passed with Vitest `4.1.10`; 4 test files passed and 23
+  tests passed. The rendered `src/ui/App.test.tsx` smoke check is included.
+- Final `npm run build`: passed with Vite `8.1.4`; 1,976 modules transformed and
+  `dist/index.html`, 72.88 kB CSS and 510.07 kB JavaScript assets emitted. The
+  existing non-failing greater-than-500-kB chunk warning remains.
+- `npm ls SharedUI --depth=0`: passed and reported `SharedUI@0.1.0`.
+- Final `git diff --check`: passed after the Worker notes were appended, with
+  only Git's existing LF-to-CRLF working-copy warnings.
+- Boundary scan
+  `rg -n 'from\s+["''](?:react|react-dom|SharedUI)|import\s+["'']SharedUI' src/core src/application src/adapters`
+  found no React, React DOM or SharedUI import below the UI boundary.
+- Core-runtime scan
+  `rg -n '\b(window|document|navigator|FileSystemDirectoryHandle|process|Buffer)\b|node:|from\s+["''](?:fs|path)["'']' src/core`
+  found no browser/Node globals, `node:` imports or `fs`/`path` imports.
+- Scope scan
+  `rg -n 'JSON\.parse|parseDocument|remarkParse|ValidationRule|FindingSeverity|fingerprint|showDirectoryPicker|FileSystemDirectoryHandle|node:fs|from\s+["'']fs["'']|writeFile|appendFile|createWriteStream|exec\(|spawn\(' src package.json`
+  found no content-parser calls, validation/finding model, filesystem adapter,
+  execution or write API.
+- Parser-dependency scan
+  `rg -n '"(?:yaml|js-yaml|remark|remark-parse|unified|gray-matter|markdown-it)"\s*:' package.json`
+  found no direct parser dependency declaration. A supplementary
+  `npm ls yaml js-yaml remark remark-parse unified gray-matter markdown-it --depth=0`
+  printed `(empty)`; npm returned its expected exit code 1 because none of the
+  explicitly queried packages are installed at depth zero.
+- `rg -n 'SharedUI' src` showed SharedUI imports only in `src/ui` plus the one
+  `SharedUI/styles.css` entry import in `src/main.tsx`; the remaining match was
+  rendered-test description text.
+- No lint command is configured, so no lint check was run. The Worker did not
+  perform a manual browser check; the rendered automated check passed and the
+  Master will perform independent browser verification if required.
+
+### Limitations, discoveries and stop boundary
+
+- The 14 fixture contents are intentionally small placeholders and are not
+  parsed or asserted as valid YAML, JSON, NDJSON or Markdown records. Content
+  parsing belongs to SLC-003.
+- Discovery support describes the required path structure only. It cannot claim
+  schema/content compatibility until later parsing and profile work exists.
+- The pre-existing SharedUI production chunk remains 510.07 kB after
+  minification and triggers Vite's non-failing size warning; no bundle redesign
+  was authorized in this Slice.
+- No browser or Node filesystem source, handle, parser, entity model, active-work
+  model, validation rule, finding, CLI/CI surface, mutation or execution path
+  was added.
+- `CurrentIndex.yaml`, `Relations.yaml`, `Ledger.ndjson`, Scrum/Handoff status,
+  `SLC-003`, `VER-SLC-002` and `REV-SLC-002` were not changed by the Worker.
+  The result is pending Master verification and a fresh independent Reviewer.
+- Work stopped at the SLC-002 boundary; SLC-003 was not begun.
+
+### Master verification
+
+The Master independently inspected the complete product and transition diff,
+reran clean installation, strict typecheck, all 23 tests, the production build,
+SharedUI resolution, whitespace and boundary/scope scans, and a live rendered
+browser smoke. All applicable gates passed. Exact evidence is recorded in
+`SDP/Verification/VER-SLC-002.md`.
+
+`VER-SLC-002` is related in `Relations.yaml` and recorded by append-only
+ledger event 018. SLC-002 remains active pending fresh independent review;
+`CurrentIndex.yaml` remains on SLC-002 and SLC-003 remains planned.
+
+### SLC-002 Source-List Failure Correction
+
+Status: correction verified; final independent review approved
+Date: 2026-07-12
+
+The correction addresses the sole medium finding in `REV-SLC-002`. A rejected
+`ProjectSource.listFiles()` now returns an unobserved manifest with profile
+`sdp-toolkit-current / unknown`, empty files, core traceability and standard
+directory presence, and only the stable `DISCOVERY_SOURCE_LIST_FAILED` error.
+It does not invent `DISCOVERY_MISSING_CORE_SOURCE` warnings. Successful
+listings retain their prior behavior: an empty or otherwise core-incomplete
+listing is `partial` with missing-core warnings. Discovery still never calls
+`readText()`.
+
+The permanent regression in
+`src/core/discovery/discoverProject.test.ts` distinguishes rejected listing
+from a successfully listed empty source, asserts deterministic repeated failure
+output, the exact empty manifest and error diagnostic, preserved successful
+`partial` semantics, and zero content reads. The correction changed only
+`src/core/discovery/discoverProject.ts`, its test, and this appended subsection;
+it did not harden duplicate paths or begin `SLC-003`.
+
+Correction verification evidence:
+
+- `npm test -- src/core/discovery/discoverProject.test.ts --reporter=verbose`:
+  passed; 1 test file and 6 tests passed.
+- `npm run typecheck`: passed with no TypeScript diagnostics.
+- `npm test`: passed with Vitest `4.1.10`; 4 test files and 24 tests passed.
+- `npm run build`: passed; Vite `8.1.4` transformed 1,976 modules and emitted
+  the production assets. The already-recorded non-failing chunk-size warning
+  remains.
+- `git diff --check`: passed with only the existing LF-to-CRLF working-copy
+  notices.
+
+No new residual risk was introduced by the correction. Structural profile
+support remains path-only as already recorded. A fresh independent Reviewer
+subsequently approved the correction. Work stopped at the SLC-002 boundary.
+
+### Independent review and completion
+
+The first fresh Reviewer reproduced all command gates and found one medium
+honesty defect: a rejected `listFiles()` call was labeled `partial` and
+generated unsupported missing-core warnings. A bounded correction Worker
+changed only that failure branch, its regression test and implementation-note
+evidence. Master reruns passed the focused 6-test discovery file, strict
+typecheck, 4 files/24 tests, production build and whitespace checks.
+
+A second fresh Reviewer validated the correction, unchanged successful
+supported/partial behavior, deterministic output, zero content reads, scope
+boundaries and append-only traceability. Final `REV-SLC-002` disposition is
+approved with no remaining actionable finding.
+
+`Relations.yaml` now records SLC-002 completed and relates
+`VER-SLC-002` and `REV-SLC-002`. Ledger events 018-022 record
+verification, initial changes-required review, correction, final approval and
+Slice completion. `CurrentIndex.yaml` remains on SLC-002 for supervising
+acceptance; SLC-003 remains planned and untouched.

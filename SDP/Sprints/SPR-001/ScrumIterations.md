@@ -18,7 +18,8 @@ Authorized by `STU-001`, `REQSET-001`, `ARC-001`, `DAN-001`, `DES-001` and `IMP-
 Status: active  
 Iteration ID: `ITR-001`
 
-The Iteration executes the ordered Slice contracts below. Only `SLC-001` is active initially.
+The Iteration executes the ordered Slice contracts below. `SLC-001` is
+completed and accepted; `SLC-002` is active.
 
 ---
 
@@ -137,16 +138,366 @@ Stop immediately after SLC-001 verification, review and traceability updates. Do
 
 Completed on 2026-07-11 after `VER-SLC-001` passed and the final
 `REV-SLC-001` disposition was approved following a bounded traceability
-correction. `CurrentIndex.yaml` intentionally remains pointed at `SLC-001`
-for supervising acceptance. `SLC-002` remains planned and was not begun.
+correction. `CurrentIndex.yaml` remained pointed at `SLC-001` until
+supervising architect acceptance was recorded on 2026-07-11. `SLC-002` was
+then activated through the required traceability transition.
 
 ---
 
 ## SLC-002 — Project source, provenance and discovery
 
-Status: planned
+Status: completed
+Slice ID: `SLC-002`
 
-Goal: implement the detailed `ProjectSource`, path normalization, `SourceRef`, fixture adapter and deterministic discovery manifest. No YAML/NDJSON parsing.
+### Goal
+
+Implement the framework-independent project-source, path-normalization,
+source-provenance and deterministic discovery foundation required before
+traceability parsing begins.
+
+The Slice shall prove that SDP-Analyzer can inspect an abstract project source,
+normalize and validate repository-relative paths, discover the Tier 1 SDP
+structure, and report a deterministic manifest without parsing YAML, NDJSON or
+Markdown content.
+
+### Why now
+
+SLC-001 established the project and SharedUI boundaries. Before parser
+implementation, the system needs one stable source/discovery contract so
+fixtures, future browser directory access and future Node adapters can supply
+identical project evidence without parser or UI coupling.
+
+### Requirements implemented
+
+Primary: `REQ-F-002`, `REQ-P-001`, `REQ-M-002`.
+
+Partial/foundation: `REQ-P-002`, `REQ-D-005`, `REQ-C-001`,
+`REQ-C-002`, `REQ-NF-001`, `REQ-NF-002`, `REQ-T-001`,
+`REQ-T-003`, `REQ-S-001` and `REQ-S-003`.
+
+SLC-002 does not claim full acceptance of requirements whose later behavior
+depends on parsing, normalization or validation.
+
+### Architecture and design references
+
+`ARC-COMP-001`, `ARC-COMP-003`, `ARC-COMP-004`,
+`ARC-COMP-011`; `ADR-001`, `ADR-002`, `ADR-003`,
+`ADR-004`, `ADR-008`; `DES-001` sections 2, 3, 7, 8, 9, 12,
+13 and 14.
+
+### Required implementation
+
+#### 1. Source provenance types
+
+Add the Tier 1 source types defined by `DES-001`, including:
+
+```ts
+type SourceKind =
+  | "yaml"
+  | "json"
+  | "ndjson"
+  | "markdown"
+  | "synthetic";
+
+interface SourceRef {
+  readonly sourceId: string;
+  readonly path: string;
+  readonly kind: SourceKind;
+  readonly lineStart?: number;
+  readonly columnStart?: number;
+  readonly lineEnd?: number;
+  readonly columnEnd?: number;
+  readonly pointer?: string;
+}
+```
+
+Use readonly fields where appropriate. Do not introduce parser-specific AST
+types.
+
+#### 2. Repository-relative path normalization
+
+Create a small pure path module that:
+
+- converts backslashes to `/`;
+- rejects absolute paths and drive-letter paths;
+- rejects empty paths and leading `/`;
+- rejects `.` and `..` path segments;
+- rejects attempts to escape the source root;
+- produces one canonical repository-relative path;
+- depends on no Node filesystem API; and
+- behaves deterministically in browser and Node test runtimes.
+
+Unsafe traversal paths must fail explicitly rather than be silently repaired.
+Expose an explicit result or typed error suitable for adapters and diagnostics.
+
+#### 3. ProjectSource contract refinement
+
+Retain the minimal read-only source boundary from SLC-001. Refine it only where
+required to support safe canonical paths and discovery.
+
+Do not add write methods, filesystem handles, browser-specific types,
+Node-specific types, parser methods, generic plugin frameworks or speculative
+streaming APIs.
+
+#### 4. Fixture source
+
+Refine the bundled fixture adapter so that:
+
+- all fixture paths are canonical and deterministic;
+- `listFiles()` returns stable canonical ordering;
+- `readText()` accepts only a known canonical file path;
+- unknown or unsafe paths fail explicitly;
+- no target-project code is executed; and
+- no source mutation is possible.
+
+The fixture represents this minimal standard SDP project structure:
+
+```text
+AGENTS.md
+AGENTS-project.md
+SDP/01--Mandate/mandate.md
+SDP/02--Study/study.md
+SDP/03--Requirements/requirements.md
+SDP/04--Architecture/architecture.md
+SDP/05--DesignAnalysis/design-analysis.md
+SDP/06--Design/design.md
+SDP/07--Implementation/implementation-plan.md
+SDP/Sprints/SPR-001/ScrumIterations.md
+SDP/Verification/verification-plan.md
+SDP/Traceability/CurrentIndex.yaml
+SDP/Traceability/Relations.yaml
+SDP/Traceability/Ledger.ndjson
+```
+
+Fixture contents may remain minimal text placeholders where content parsing
+belongs to later Slices. Do not duplicate the live repository into the fixture.
+
+#### 5. Discovery manifest
+
+Implement a pure discovery operation that consumes only `ProjectSource`. It
+returns a deterministic manifest containing at least:
+
+```ts
+interface DiscoveredSource {
+  readonly path: string;
+  readonly kind: SourceKind;
+  readonly source: SourceRef;
+}
+
+interface CoreTraceabilityDiscovery {
+  readonly currentIndex?: DiscoveredSource;
+  readonly relations?: DiscoveredSource;
+  readonly ledger?: DiscoveredSource;
+}
+
+interface ProjectDiscoveryManifest {
+  readonly sourceId: string;
+  readonly files: readonly DiscoveredSource[];
+  readonly coreTraceability: CoreTraceabilityDiscovery;
+  readonly standardDirectories: {
+    readonly lifecycle: readonly string[];
+    readonly sprintsPresent: boolean;
+    readonly verificationPresent: boolean;
+    readonly codeReviewPresent: boolean;
+    readonly traceabilityPresent: boolean;
+  };
+  readonly profile: {
+    readonly id: string;
+    readonly support: "supported" | "partial" | "unsupported" | "unknown";
+  };
+  readonly diagnostics: readonly Diagnostic[];
+}
+```
+
+The exact shape may follow repository conventions, but it must preserve these
+responsibilities. Discovery must:
+
+- locate exact Tier 1 core paths;
+- classify source kind from known extensions and conventions;
+- identify standard SDP directory presence;
+- distinguish complete supported structure from partial structure;
+- preserve provenance;
+- return deterministic canonical ordering;
+- avoid reading or interpreting YAML/NDJSON contents; and
+- avoid inferring entity IDs or work status.
+
+#### 6. Diagnostics
+
+Add the framework-neutral diagnostic type from `DES-001`:
+
+```ts
+type DiagnosticSeverity = "error" | "warning" | "info";
+
+interface Diagnostic {
+  readonly code: string;
+  readonly severity: DiagnosticSeverity;
+  readonly message: string;
+  readonly source?: SourceRef;
+}
+```
+
+Only discovery, path and source diagnostics belong in this Slice. Do not
+implement validation findings or the `SDP001`–`SDP008` rule model.
+
+#### 7. Application and UI boundary
+
+The existing UI may be adjusted minimally to display discovery smoke
+information such as discovered file count, core traceability files present,
+profile support and discovery diagnostic count. Use existing SharedUI
+components and dashboard configuration.
+
+Do not add generic UI primitives, a findings view, parser status or fake health
+results. A UI change is optional if discovery behavior is sufficiently proven
+through application tests. Keep UI work subordinate to source/discovery core.
+
+### Expected modules
+
+A reasonable layout is:
+
+```text
+src/core/source/
+  ProjectSource.ts
+  SourceRef.ts
+  projectPath.ts
+
+src/core/discovery/
+  ProjectDiscoveryManifest.ts
+  discoverProject.ts
+
+src/core/diagnostics/
+  Diagnostic.ts
+
+src/adapters/fixtures/
+  bundledFixtureSource.ts
+  bundledFixtureSource.test.ts
+
+src/application/
+  loadSourcePreview.ts
+```
+
+Names may vary, but responsibility boundaries shall remain explicit.
+
+### Invariants
+
+- No React or SharedUI imports in `src/core`, `src/application` or
+  `src/adapters`.
+- No Node or browser filesystem dependency in core.
+- No project mutation or analyzed-code execution.
+- No YAML, JSON, NDJSON or Markdown parsing.
+- No entity normalization, validation rules or findings.
+- Every discovered source has provenance.
+- File ordering is deterministic.
+- Unsafe paths fail explicitly.
+- `ProjectSource` remains read-only.
+- SharedUI remains presentation-only.
+- Existing SLC-001 behavior remains functional.
+
+### Explicit non-goals
+
+Do not implement:
+
+- YAML parser dependencies, NDJSON parsing or Markdown AST parsing;
+- CurrentIndex field interpretation, Relations interpretation or Ledger event
+  parsing;
+- normalized entities or relations;
+- active Sprint/Iteration/Slice resolution;
+- validation rule registry, findings or finding fingerprints;
+- completed-without-verification or stale-work detection;
+- File System Access API, browser directory permissions or a Node filesystem
+  adapter;
+- graph visualization, report export, CLI or CI;
+- automatic repair or write-back;
+- broad SharedUI improvements; or
+- SLC-003 work.
+
+### Required tests
+
+At minimum:
+
+1. canonical path normalization;
+2. Windows separator normalization;
+3. rejection of absolute paths;
+4. rejection of drive-letter paths;
+5. rejection of `.` and `..` segments;
+6. rejection of unknown fixture reads;
+7. deterministic fixture file ordering;
+8. discovery of all three core traceability files;
+9. partial-profile result when a core source is missing;
+10. provenance on every discovered file;
+11. deterministic repeated discovery output; and
+12. existing rendered application smoke behavior.
+
+Core and adapter tests must not rely on browser directory APIs.
+
+### Verification
+
+Run and record exact outcomes for:
+
+```text
+npm ci
+npm run typecheck
+npm test
+npm run build
+npm ls SharedUI --depth=0
+git diff --check
+```
+
+Run lint only if a lint command is introduced or already exists. Perform a
+rendered smoke check if the UI changes.
+
+Create `VER-SLC-002` only after real checks run. Record exact commands,
+outcomes, test counts, deterministic discovery evidence, limitations and the
+working-tree scope verified.
+
+### Independent review
+
+Use a fresh independent Reviewer after implementation. The Reviewer must inspect
+the complete contract, path safety, deterministic ordering, provenance coverage,
+`ProjectSource` minimality, discovery/profile logic, absence of parser behavior,
+absence of React/SharedUI imports outside UI, fixture size and purpose, actual
+verification evidence and traceability correctness.
+
+Create `REV-SLC-002` only after review occurs. If changes are required,
+delegate a bounded correction Worker and repeat applicable checks and review.
+
+### Completion signal
+
+SLC-002 is complete when safe canonical project paths are implemented and
+tested; the fixture satisfies the refined read-only contract; deterministic
+discovery returns the Tier 1 source manifest; all discovered facts retain
+provenance; complete and partial fixture structures are distinguished; no
+source content parsing exists; verification passes; fresh review approves; and
+traceability accurately records real evidence.
+
+`CurrentIndex.yaml` must remain on `SLC-002` after completion. `SLC-003`
+must remain planned and untouched.
+
+### Discoveries policy
+
+Resolve only discoveries necessary for this Slice that do not alter accepted
+requirements or architecture. Record, but do not implement, SharedUI package
+improvements, browser directory acquisition, Node adapter needs, historical SDP
+profile variants, parser schema questions, stale-work policies, report or graph
+requirements.
+
+If implementation requires changing architecture, requirements or Tier
+boundaries, stop and return the conflict to the supervising architect.
+
+### Stop condition
+
+Stop immediately after SLC-002 verification, review and traceability updates.
+Do not begin `SLC-003`.
+
+### Completion record
+
+Completed on 2026-07-12 after `VER-SLC-002` passed. The first
+`REV-SLC-002` disposition required a bounded source-list failure correction;
+the correction passed 24 tests and a second fresh Reviewer approved the current
+tree with no remaining actionable finding.
+
+`CurrentIndex.yaml` intentionally remains pointed at
+`SPR-001 / ITR-001 / SLC-002` for supervising acceptance. `SLC-003`
+remains planned and was not begun.
 
 ## SLC-003 — Core traceability parsers
 

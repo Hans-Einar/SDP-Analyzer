@@ -1,28 +1,36 @@
-# Handoff — SLC-001
+# Handoff — SLC-002
 
-Status: SLC-001 completed; awaiting supervising acceptance
-Active Slice: `SLC-001`  
+Status: SLC-002 completed; awaiting supervising acceptance
+Active Slice: `SLC-002`
 Sprint: `SPR-001`  
 Iteration: `ITR-001`
 
 ## Completion handoff
 
-`SLC-001` is completed with passing `VER-SLC-001` evidence and final
-`REV-SLC-001` approval. The implementation establishes npm-based reproducible
-commands, a strict Vite/React/TypeScript shell, framework-independent source
-boundary, deterministic fixture smoke path, and the required SharedUI
-`DashboardRenderer` composition without local generic component duplication.
+The supervising architect accepted `SLC-001` on 2026-07-11 after passing
+`VER-SLC-001` evidence and final `REV-SLC-001` approval. The tracked
+`SharedUI-0.1.0.tgz` resolves the former reproducibility concern.
 
-The initial review required one traceability correction: add `REQ-UI-004` and
-`REQ-UI-001` to the Slice relation. That bounded correction was independently
-re-reviewed and approved. The SharedUI package's undocumented Tailwind consumer
-build requirements and the non-failing 504.71 kB bundle warning remain recorded
-discoveries.
+`SLC-002` is completed with passing `VER-SLC-002` evidence and final
+`REV-SLC-002` approval. It establishes pure repository-path safety, readonly
+source/provenance and diagnostics contracts, the exact 14-file fixture, and
+content-blind deterministic discovery with complete, partial and unknown
+profile states.
 
-`CurrentIndex.yaml` intentionally still points to
-`SPR-001 / ITR-001 / SLC-001`. The supervising human has not authorized
-activation of `SLC-002`; it remains planned. No commit or pull request was
-created.
+The first review required one correction: a rejected source listing must report
+`unknown` rather than inventing partial structure and missing-core warnings.
+That bounded correction added a permanent regression test, passed the final
+24-test suite and received fresh independent approval.
+
+`CurrentIndex.yaml` points to `SPR-001 / ITR-001 / SLC-002`.
+`Relations.yaml` records SLC-001 and SLC-002 as completed and relates the
+real SLC-002 verification/review records. Ledger history records activation,
+verification, the initial review finding, correction, final approval and
+completion without rewriting earlier events.
+
+`CurrentIndex.yaml` intentionally remains on `SLC-002` for supervising
+acceptance. `SLC-003` remains planned and is not authorized. No commit, push
+or pull request was created.
 
 ## Original Codex Master prompt (fulfilled)
 

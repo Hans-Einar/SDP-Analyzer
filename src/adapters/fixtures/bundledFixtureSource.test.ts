@@ -1,28 +1,85 @@
 import { describe, expect, it } from "vitest";
 import type { ProjectSource } from "../../core/source/ProjectSource";
-import { bundledFixtureSource } from "./bundledFixtureSource";
+import { normalizeProjectPath } from "../../core/source/projectPath";
+import {
+  BUNDLED_FIXTURE_PATHS,
+  bundledFixtureSource,
+} from "./bundledFixtureSource";
 
 async function readListedFixtureText(source: ProjectSource) {
   const entries = await source.listFiles();
   const firstEntry = entries[0];
 
   if (firstEntry === undefined) {
-    throw new Error("Expected the bundled fixture to list one file.");
+    throw new Error("Expected the bundled fixture to list files.");
   }
 
   return source.readText(firstEntry.path);
 }
 
 describe("bundledFixtureSource", () => {
-  it("lists and reads deterministic text through ProjectSource", async () => {
-    await expect(bundledFixtureSource.listFiles()).resolves.toEqual([
-      { kind: "file", path: "SDP/Fixture.txt" },
-    ]);
+  it("lists the exact standard fixture paths in deterministic canonical order", async () => {
+    const expectedPaths = [
+      "AGENTS-project.md",
+      "AGENTS.md",
+      "SDP/01--Mandate/mandate.md",
+      "SDP/02--Study/study.md",
+      "SDP/03--Requirements/requirements.md",
+      "SDP/04--Architecture/architecture.md",
+      "SDP/05--DesignAnalysis/design-analysis.md",
+      "SDP/06--Design/design.md",
+      "SDP/07--Implementation/implementation-plan.md",
+      "SDP/Sprints/SPR-001/ScrumIterations.md",
+      "SDP/Traceability/CurrentIndex.yaml",
+      "SDP/Traceability/Ledger.ndjson",
+      "SDP/Traceability/Relations.yaml",
+      "SDP/Verification/verification-plan.md",
+    ];
 
+    expect(BUNDLED_FIXTURE_PATHS).toEqual(expectedPaths);
+
+    const firstListing = await bundledFixtureSource.listFiles();
+    const secondListing = await bundledFixtureSource.listFiles();
+
+    expect(firstListing).toEqual(
+      expectedPaths.map((path) => ({ kind: "file", path })),
+    );
+    expect(secondListing).toEqual(firstListing);
+    expect(
+      firstListing.every((entry) => {
+        const normalized = normalizeProjectPath(entry.path);
+        return normalized.ok && normalized.path === entry.path;
+      }),
+    ).toBe(true);
+  });
+
+  it("reads known canonical placeholder text through ProjectSource", async () => {
     await expect(readListedFixtureText(bundledFixtureSource)).resolves.toEqual({
-      path: "SDP/Fixture.txt",
-      text: "Bundled fixture source is readable through ProjectSource.\n",
+      path: "AGENTS-project.md",
+      text: "Placeholder for bundled fixture project instructions.\n",
+    });
+  });
+
+  it("fails explicitly for an unknown canonical path", async () => {
+    await expect(
+      bundledFixtureSource.readText("SDP/Unknown.md"),
+    ).rejects.toMatchObject({
+      name: "FixtureSourceReadError",
+      code: "file-not-found",
+      path: "SDP/Unknown.md",
+    });
+  });
+
+  it("fails explicitly for unsafe and non-canonical reads", async () => {
+    await expect(
+      bundledFixtureSource.readText("../AGENTS.md"),
+    ).rejects.toMatchObject({
+      code: "unsafe-path",
+    });
+    await expect(
+      bundledFixtureSource.readText("SDP\\Traceability\\CurrentIndex.yaml"),
+    ).rejects.toMatchObject({
+      code: "non-canonical-path",
     });
   });
 });
-

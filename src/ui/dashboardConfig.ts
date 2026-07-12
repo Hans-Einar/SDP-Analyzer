@@ -29,19 +29,19 @@ function createSourceChildren(source: DashboardSourceState): DashboardNode[] {
       kind: "component",
       ref: "PageHeader",
       props: {
-        title: "Bundled source smoke path",
+        title: "Bundled discovery smoke path",
         description:
-          "SLC-001 proves read-only fixture access through the ProjectSource boundary.",
+          "SLC-002 discovers canonical SDP project evidence without parsing file contents.",
       },
     },
     {
       kind: "component",
       ref: "Section",
       props: {
-        eyebrow: "SLC-001",
-        title: "Fixture source boundary",
+        eyebrow: "SLC-002",
+        title: "Read-only source and discovery boundary",
         body:
-          "This shell lists and reads a deterministic in-memory text fixture. Parsing and validation are intentionally deferred.",
+          "The source exposes a deterministic 14-file SDP fixture. Discovery classifies paths and reports profile support; parsing and validation remain deferred.",
       },
     },
   ];
@@ -91,7 +91,16 @@ function createSourceChildren(source: DashboardSourceState): DashboardNode[] {
           { label: "Source ID", value: source.preview.sourceId },
           { label: "Files", value: String(source.preview.fileCount) },
           { label: "First file", value: source.preview.firstFilePath },
-          { label: "Read result", value: source.preview.text.trim() },
+          {
+            label: "Core traceability",
+            value: `${source.preview.coreTraceabilityPaths.length}/3`,
+          },
+          { label: "Profile support", value: source.preview.profileSupport },
+          {
+            label: "Discovery diagnostics",
+            value: String(source.preview.discoveryDiagnosticCount),
+          },
+          { label: "Sample read", value: source.preview.text.trim() },
         ],
       },
     },
