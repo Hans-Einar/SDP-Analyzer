@@ -100,7 +100,7 @@ const EXPECTED_SNAPSHOT = {
     {
       id: "SPR-001",
       kind: "sprint",
-      attributes: { requirements: ["REQ-F-001"] },
+      attributes: { requirements: ["REQSET-001"] },
       sources: [
         source(RELATIONS_PATH, "yaml", {
           lineStart: 6,
@@ -140,10 +140,10 @@ const EXPECTED_SNAPSHOT = {
       ],
     },
     {
-      id: 'relation:["SPR-001","requirements","REQ-F-001","fixture:minimal","SDP/Traceability/Relations.yaml","yaml",null,null,null,null,"/sprints/SPR-001/requirements/0"]',
+      id: 'relation:["SPR-001","requirements","REQSET-001","fixture:minimal","SDP/Traceability/Relations.yaml","yaml",null,null,null,null,"/sprints/SPR-001/requirements/0"]',
       type: "requirements",
       from: "SPR-001",
-      to: "REQ-F-001",
+      to: "REQSET-001",
       sources: [
         source(RELATIONS_PATH, "yaml", {
           pointer: "/sprints/SPR-001/requirements/0",

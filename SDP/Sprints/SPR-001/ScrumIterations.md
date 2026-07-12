@@ -1233,11 +1233,845 @@ approved review and SLC-004 completion. `CurrentIndex.yaml` intentionally
 remains on SLC-004 for supervising acceptance; SLC-005 remains planned and
 untouched.
 
-## SLC-005 — Deterministic validation
+## SLC-005 — Deterministic validation engine and initial rules
 
-Status: planned
+Status: completed
 
-Goal: implement ordered pure rules needed by Tier 1 and deterministic finding fingerprints using broken fixtures.
+## Goal
+
+Implement the framework-independent validation engine, canonical `Finding` model, deterministic finding fingerprints and the first bounded SDP validation rules over `ProjectSnapshot`.
+
+This Slice turns normalized repository facts into explainable project-level findings.
+
+It must not implement UI findings presentation, graph visualization, Markdown extraction, local-folder acquisition, repair or write-back.
+
+## Why now
+
+SLC-004 established one deterministic normalized snapshot.
+
+Validation can now operate over stable facts without coupling rule logic to YAML shapes, filesystem access or React components.
+
+SLC-006 will consume findings through the application/UI layer. Therefore SLC-005 must make rule behavior, provenance, ordering and fingerprints trustworthy first.
+
+# Requirements implemented
+
+Primary:
+
+* `REQ-F-004`
+* `REQ-F-005`
+* `REQ-V-001`
+* `REQ-V-002`
+* `REQ-V-003`
+* `REQ-V-004`
+* `REQ-V-005`
+* `REQ-V-006`
+* `REQ-V-007`
+* `REQ-V-008`
+* `REQ-P-003`
+* `REQ-M-003`
+* `REQ-M-005`
+* `REQ-NF-001`
+* `REQ-NF-004`
+* `REQ-T-001`
+* `REQ-T-002`
+
+Partial/foundation:
+
+* `REQ-UI-001`
+* `REQ-UI-003`
+* `REQ-T-003`
+* `REQ-T-005`
+* `REQ-C-002`
+* `REQ-NF-002`
+
+Do not claim UI rendering requirements as complete.
+
+# Architecture and design references
+
+* `ARC-COMP-004`
+* `ARC-COMP-005`
+* `ARC-COMP-006`
+* `ARC-COMP-007`
+* `ARC-COMP-011`
+* `ADR-002`
+* `ADR-003`
+* `ADR-005`
+* `ADR-008`
+* `DEC-STU-008`
+* `DEC-STU-009`
+* `DEC-STU-010`
+* `DEC-STU-011`
+* `DES-001` sections 4, 5, 8, 12, 13 and 14
+
+# Required implementation
+
+## 1. Finding model
+
+Implement the accepted finding contract:
+
+```ts
+type FindingSeverity =
+  | "error"
+  | "warning"
+  | "info"
+  | "unknown";
+
+interface Finding {
+  readonly fingerprint: string;
+  readonly ruleId: string;
+  readonly severity: FindingSeverity;
+  readonly title: string;
+  readonly explanation: string;
+  readonly affectedEntityIds: readonly string[];
+  readonly sources: readonly SourceRef[];
+  readonly recommendation?: string;
+}
+```
+
+Findings are presentation-neutral.
+
+They must not contain React nodes, SharedUI data, callbacks, filesystem handles or mutable state.
+
+## 2. Analysis context
+
+Implement:
+
+```ts
+interface AnalysisContext {
+  readonly analyzerVersion: string;
+  readonly profileId: string;
+  readonly analysisTime: string;
+}
+```
+
+Rules must not read ambient time.
+
+SLC-005 rules should use `analysisTime` only if genuinely required. The initial rule set should not introduce stale-work thresholds.
+
+## 3. Validation rule contract
+
+Implement:
+
+```ts
+interface ValidationRule {
+  readonly id: string;
+  evaluate(
+    snapshot: ProjectSnapshot,
+    context: AnalysisContext
+  ): readonly Finding[];
+}
+```
+
+Rules must:
+
+* be pure;
+* not mutate snapshot or context;
+* not perform file reads;
+* not import React or SharedUI;
+* not depend on rule execution order;
+* emit deterministic output.
+
+## 4. Explicit rule registry
+
+Implement an explicit Tier 1 registry.
+
+No runtime plugin discovery, dependency injection framework or dynamic repository code loading.
+
+A suitable shape:
+
+```ts
+const TIER_1_RULES: readonly ValidationRule[] = [
+  requiredCoreSourcesRule,
+  duplicateEntityDefinitionsRule,
+  danglingRelationsRule,
+  malformedLedgerRule,
+  unresolvedActiveDeclarationsRule,
+  contradictoryActiveHierarchyRule,
+  completedSliceWithoutVerificationRule,
+  compatibilitySupportRule,
+];
+```
+
+The engine shall execute rules in ascending stable rule ID order, regardless of registry declaration order.
+
+## 5. Rule execution engine
+
+Implement one validation operation:
+
+```ts
+interface ValidationResult {
+  readonly findings: readonly Finding[];
+  readonly diagnostics: readonly Diagnostic[];
+}
+
+function validateSnapshot(
+  snapshot: ProjectSnapshot,
+  context: AnalysisContext,
+  rules?: readonly ValidationRule[]
+): ValidationResult;
+```
+
+Requirements:
+
+* canonical rule ordering;
+* canonical finding ordering;
+* deterministic output;
+* duplicate finding suppression by fingerprint;
+* one rule failure must not prevent remaining rules from running;
+* an unexpected rule exception becomes an analyzer diagnostic identifying the rule;
+* the snapshot remains unchanged.
+
+Do not convert expected project problems into thrown exceptions.
+
+## 6. Fingerprint policy
+
+Fingerprints must be stable across presentation-text changes.
+
+Derive each fingerprint from canonical structural identity, such as:
+
+```text
+rule ID
+canonical affected entity IDs
+canonical source locations
+optional stable discriminator
+```
+
+Do not include:
+
+* title;
+* explanation;
+* recommendation;
+* current array insertion order;
+* random UUID;
+* wall-clock time.
+
+A deterministic JSON tuple is acceptable.
+
+Document the exact policy.
+
+## 7. Canonical finding ordering
+
+Sort findings deterministically by:
+
+1. severity rank:
+
+   * error
+   * warning
+   * unknown
+   * info
+2. rule ID;
+3. canonical affected entity IDs;
+4. canonical source references;
+5. fingerprint.
+
+Do not depend on locale-sensitive sorting.
+
+## 8. Initial rule set
+
+Implement the following stable rule IDs exactly:
+
+```text
+SDP001
+SDP002
+SDP003
+SDP004
+SDP005
+SDP006
+SDP007
+SDP008
+```
+
+Do not renumber them.
+
+---
+
+# SDP001 — Required core source unavailable
+
+## Purpose
+
+Report missing, unreadable or unparseable required core traceability evidence.
+
+## Input evidence
+
+Use snapshot diagnostics and compatibility/provenance from discovery, parsing and normalization.
+
+Recognize the established stable diagnostic classes for:
+
+* missing CurrentIndex;
+* missing Relations;
+* missing Ledger;
+* source listing/read failure;
+* required parser result unavailable;
+* unusable supported root structure.
+
+## Behavior
+
+Emit one finding per unavailable core source when the affected source can be distinguished.
+
+Use a project-level synthetic finding only when the source itself cannot be identified, such as complete source-list failure.
+
+Suggested severity:
+
+* `error` for unreadable/unparseable required source;
+* `warning` for structurally missing required source;
+* `unknown` when acquisition evidence is insufficient to determine presence.
+
+Do not emit duplicate findings for multiple diagnostics describing the same source failure.
+
+---
+
+# SDP002 — Duplicate stable entity definitions
+
+## Purpose
+
+Report an entity ID with more than one explicit definition.
+
+## Input evidence
+
+Use SLC-004 duplicate-definition normalization diagnostics and preserved entity source locations.
+
+## Behavior
+
+Emit one finding per duplicated entity ID.
+
+The finding must:
+
+* identify the duplicated ID;
+* include every definition source known;
+* explain that one canonical entity view exists but definitions disagree or overlap;
+* not claim which definition is semantically correct.
+
+Suggested severity: `error`.
+
+Do not report duplicate relation targets or repeated Ledger subjects as duplicate entity definitions.
+
+---
+
+# SDP003 — Dangling relation endpoint
+
+## Purpose
+
+Report explicit normalized relations whose source or target entity does not exist.
+
+## Behavior
+
+For each normalized relation:
+
+* check `from` against normalized entity IDs;
+* check `to` against normalized entity IDs;
+* emit a finding for each missing endpoint condition;
+* preserve the relation source;
+* identify the relation type and unresolved ID.
+
+A single relation missing both endpoints may produce either:
+
+* one finding containing both unresolved IDs; or
+* two endpoint-specific findings.
+
+Choose one deterministic policy and document it.
+
+Suggested severity: `error`.
+
+Do not create entities to satisfy relations.
+
+---
+
+# SDP004 — Malformed Ledger evidence
+
+## Purpose
+
+Surface malformed or unsupported Ledger lines as project findings.
+
+## Input evidence
+
+Use parser diagnostics retained in the snapshot for:
+
+* invalid JSON;
+* non-object Ledger values;
+* unsafe numeric values;
+* other source-local Ledger record rejection.
+
+## Behavior
+
+Emit one finding per malformed original Ledger line where line provenance exists.
+
+Multiple diagnostics for the same line may be deterministically grouped when they describe one rejected record.
+
+Suggested severity: `error`.
+
+Do not treat valid Ledger records with unknown event fields as malformed.
+
+Do not validate duplicate event IDs or chronology in this Slice.
+
+---
+
+# SDP005 — Unresolved active declaration
+
+## Purpose
+
+Report explicit active Sprint, Refactor, Iteration or Slice IDs that do not resolve to normalized entities.
+
+## Behavior
+
+For every active field whose value is a non-empty string:
+
+* locate the entity by ID;
+* verify the expected entity kind where the kind is recognized;
+* emit a finding when no entity resolves;
+* emit a finding when the ID resolves only to a clearly incompatible recognized kind.
+
+Missing and explicit `null` active fields are not errors.
+
+Suggested severity: `error`.
+
+Do not infer active work from Ledger.
+
+---
+
+# SDP006 — Contradictory active hierarchy
+
+## Purpose
+
+Report disagreement between active Sprint, Iteration and Slice declarations and explicit normalized hierarchy relations.
+
+## Minimum supported hierarchy
+
+Check only relationships that are explicit and representable from the installed profile:
+
+```text
+Iteration → Sprint
+Slice → Iteration
+Slice → Sprint, when explicitly present
+```
+
+## Behavior
+
+When both active IDs resolve:
+
+* active Iteration must explicitly relate to active Sprint when a supported `sprint` relation exists for that Iteration;
+* active Slice must explicitly relate to active Iteration when a supported `iteration` relation exists for that Slice;
+* if the active Slice explicitly has a `sprint` relation, it must match active Sprint.
+
+Important:
+
+* absence of an optional hierarchy relation is not automatically a contradiction;
+* contradictory explicit relations are findings;
+* multiple conflicting hierarchy targets are findings;
+* do not guess hierarchy from ID names or Ledger order.
+
+Suggested severity: `error`.
+
+---
+
+# SDP007 — Completed Slice without qualifying verification
+
+## Purpose
+
+Report a Slice declared completed without explicit verification evidence.
+
+## Completion source
+
+A Slice is considered declared completed only when its normalized entity has:
+
+```text
+status == "completed"
+```
+
+Use exact documented profile status matching. Do not infer completion from Ledger events alone.
+
+## Qualifying verification evidence
+
+A completed Slice qualifies only when:
+
+1. it has an explicit normalized `verification` relation;
+2. the target resolves to an entity of kind `verification`;
+3. the verification entity has explicit evidence of an acceptable outcome, initially:
+
+   * `outcome == "passed"` in preserved attributes, or
+   * another exact installed-profile field documented by current repository evidence.
+
+A `verification_plan` relation is not completion evidence.
+
+A review relation alone is not completion evidence.
+
+## Behavior
+
+Emit one finding per completed Slice lacking qualifying verification.
+
+Suggested severity: `warning`.
+
+Do not execute verification commands.
+
+Do not infer successful verification from Ledger prose.
+
+---
+
+# SDP008 — Unsupported or partial compatibility
+
+## Purpose
+
+Make compatibility limitations explicit.
+
+## Behavior
+
+Use `snapshot.profile.support`:
+
+* `supported`: emit no finding;
+* `partial`: emit a `warning`;
+* `unsupported`: emit an `error`;
+* `unknown`: emit an `unknown` finding.
+
+Include relevant project-level provenance and compatibility diagnostics where available.
+
+Do not describe partial support as total analysis failure.
+
+Do not emit a health score.
+
+---
+
+# 9. Finding explanations
+
+Each finding must explain:
+
+* what was observed;
+* why it matters;
+* which repository evidence supports it;
+* what the analyzer did not infer.
+
+Recommendations must be concrete and read-only, for example:
+
+```text
+Add or correct the explicit Relations entry for SLC-004.
+```
+
+Avoid opaque language such as:
+
+```text
+Project health is low.
+```
+
+## 10. Source provenance
+
+Every finding must include:
+
+* one or more real `SourceRef` values when evidence has provenance; or
+* one explicit synthetic/project-level `SourceRef` when the condition has no file-level evidence.
+
+Synthetic references must use a stable source ID/path/pointer convention.
+
+Do not emit findings with an empty `sources` array.
+
+Canonicalize and deduplicate finding sources.
+
+## 11. Affected entity IDs
+
+Use only IDs directly involved in the condition.
+
+Examples:
+
+* duplicate definition: duplicated ID;
+* dangling relation: source and unresolved target IDs;
+* unresolved active Slice: active Slice ID;
+* compatibility finding: empty affected-ID array is acceptable;
+* malformed Ledger line: subject ID only if present in valid retained evidence; otherwise empty.
+
+Canonicalize and deduplicate IDs.
+
+## 12. Rule-specific diagnostics versus findings
+
+Use diagnostics only for analyzer execution defects, such as a rule throwing unexpectedly.
+
+Expected repository problems become findings.
+
+Do not convert every parser diagnostic blindly into a finding. Map only those covered by the explicit rules above.
+
+## 13. Application orchestration
+
+Extend or add a presentation-neutral application operation:
+
+```text
+discover
+→ parse
+→ normalize
+→ validate
+```
+
+A suitable result:
+
+```ts
+interface ProjectAnalysis {
+  readonly discovery: ProjectDiscoveryManifest;
+  readonly snapshot: ProjectSnapshot;
+  readonly findings: readonly Finding[];
+  readonly validationDiagnostics: readonly Diagnostic[];
+}
+```
+
+Do not introduce UI state or SharedUI types.
+
+## 14. Fixture strategy
+
+Add deterministic broken fixture variants or in-memory snapshot builders for:
+
+* missing core source;
+* duplicate entity definition;
+* dangling relation;
+* malformed Ledger line;
+* unresolved active declaration;
+* contradictory active hierarchy;
+* completed Slice without passed verification;
+* partial compatibility;
+* clean supported snapshot.
+
+Keep expected findings separate from fixture inputs where practical.
+
+Do not copy entire live repository files.
+
+## 15. UI boundary
+
+Do not build the findings UI in SLC-005.
+
+The existing UI may remain unchanged.
+
+No fake findings preview.
+
+No project-health score.
+
+No graph.
+
+SLC-006 owns UI presentation and interaction.
+
+# Expected modules
+
+A reasonable layout is:
+
+```text
+src/core/findings/
+  Finding.ts
+  findingFingerprint.ts
+  findingOrdering.ts
+
+src/core/validation/
+  AnalysisContext.ts
+  ValidationRule.ts
+  validateSnapshot.ts
+  rules/
+    SDP001RequiredCoreSources.ts
+    SDP002DuplicateDefinitions.ts
+    SDP003DanglingRelations.ts
+    SDP004MalformedLedger.ts
+    SDP005UnresolvedActive.ts
+    SDP006ActiveHierarchy.ts
+    SDP007MissingVerification.ts
+    SDP008Compatibility.ts
+
+src/application/
+  analyzeProject.ts
+```
+
+Exact filenames may differ, but responsibilities must remain cohesive.
+
+# Invariants
+
+* No React or SharedUI imports in findings, validation, application, core or adapters.
+* No filesystem reads in rules.
+* No source mutation.
+* No project mutation.
+* No analyzed code execution.
+* No ambient time.
+* No random IDs.
+* No dynamic rule loading.
+* Rule order does not affect final output.
+* Rule failure does not stop later rules.
+* Every finding has provenance.
+* Finding fingerprints exclude prose.
+* No Markdown parsing.
+* No health score.
+* No repair/write-back.
+* Existing SLC-001–004 behavior remains functional.
+* SLC-006 UI work is not started.
+
+# Explicit non-goals
+
+Do not implement:
+
+* findings UI;
+* filtering or navigation UI;
+* graph visualization;
+* Markdown document discovery beyond existing structural discovery;
+* Markdown stable-ID extraction;
+* stale or unfinished-work time thresholds;
+* duplicate Ledger event-ID validation;
+* Ledger chronology validation;
+* command execution;
+* File System Access API;
+* Node filesystem adapter;
+* report export;
+* CLI or CI integration;
+* automatic repair;
+* write-back;
+* SharedUI package changes;
+* SLC-006 work.
+
+# Required tests
+
+At minimum:
+
+## Engine
+
+1. rules execute in canonical ID order;
+2. registry declaration order does not affect output;
+3. finding ordering is deterministic;
+4. duplicate fingerprints are suppressed;
+5. fingerprints remain unchanged when title/explanation text changes;
+6. fingerprint changes when structural identity changes;
+7. rule exception becomes analyzer diagnostic;
+8. later rules still execute after one rule throws;
+9. snapshot and context remain unchanged;
+10. repeated validation is deep-equal.
+
+## SDP001
+
+11. missing core source finding;
+12. unreadable/unparseable source finding;
+13. unknown acquisition state is not misreported as missing;
+14. duplicate diagnostics for one source collapse deterministically.
+
+## SDP002
+
+15. duplicated entity ID produces one finding;
+16. all known definition sources are present;
+17. repeated relation target does not trigger SDP002.
+
+## SDP003
+
+18. missing target endpoint finding;
+19. missing source endpoint finding;
+20. valid relation emits no finding;
+21. unresolved target is not silently converted to an entity.
+
+## SDP004
+
+22. malformed Ledger JSON line produces one sourced finding;
+23. non-object Ledger line produces one sourced finding;
+24. valid neighboring records do not generate findings;
+25. line provenance is retained.
+
+## SDP005
+
+26. unresolved active Sprint finding;
+27. unresolved active Iteration finding;
+28. unresolved active Slice finding;
+29. explicit null emits no finding;
+30. compatible resolved active entity emits no finding;
+31. clearly incompatible recognized kind produces a finding.
+
+## SDP006
+
+32. active Iteration explicitly linked to another Sprint produces a finding;
+33. active Slice explicitly linked to another Iteration produces a finding;
+34. active Slice explicit Sprint mismatch produces a finding;
+35. coherent explicit hierarchy emits no finding;
+36. absent optional relation alone emits no finding;
+37. multiple conflicting hierarchy targets produce deterministic findings.
+
+## SDP007
+
+38. completed Slice with no verification relation produces a finding;
+39. verification_plan alone does not qualify;
+40. review alone does not qualify;
+41. verification target missing produces a finding;
+42. verification target wrong kind produces a finding;
+43. verification entity without passed outcome produces a finding;
+44. explicit passed verification suppresses the finding;
+45. non-completed Slice emits no finding.
+
+## SDP008
+
+46. supported emits no compatibility finding;
+47. partial emits warning;
+48. unsupported emits error;
+49. unknown emits unknown severity.
+
+## Integration and boundaries
+
+50. discover → parse → normalize → validate succeeds;
+51. clean bundled fixture has the exact expected findings;
+52. broken fixture findings are deterministic;
+53. no React/SharedUI/platform filesystem imports;
+54. no UI implementation;
+55. no Markdown parsing;
+56. existing SLC-001–004 tests remain passing.
+
+# Verification
+
+Run and record exact outcomes for:
+
+```text
+npm ci
+npm run typecheck
+npm test
+npm run build
+npm ls SharedUI yaml --depth=0
+git diff --check
+```
+
+Run lint only if configured.
+
+Also perform focused checks for:
+
+* stable fingerprints;
+* rule-order independence;
+* rule failure isolation;
+* finding provenance;
+* active hierarchy semantics;
+* verification qualification semantics;
+* no UI changes;
+* no SLC-006 work.
+
+Create `VER-SLC-005` only after real checks run.
+
+# Independent review
+
+Use a fresh independent Reviewer context.
+
+The Reviewer must inspect:
+
+* the full SLC-005 contract;
+* Finding model;
+* fingerprint inputs;
+* canonical ordering;
+* rule exception isolation;
+* every rule’s exact evidence mapping;
+* duplicate diagnostic grouping;
+* active hierarchy semantics;
+* verification qualification;
+* provenance completeness;
+* absence of UI and repair work;
+* actual verification evidence;
+* traceability consistency.
+
+Create `REV-SLC-005` only after independent review.
+
+If changes are required, delegate a bounded correction Worker and repeat relevant verification and fresh review.
+
+# Completion signal
+
+SLC-005 is complete when:
+
+* the rule engine runs deterministic pure rules over `ProjectSnapshot`;
+* all eight stable rule IDs exist;
+* finding fingerprints are structural and stable;
+* findings are canonically ordered;
+* rule failures are isolated;
+* initial project problems produce explainable sourced findings;
+* clean supported evidence avoids false findings;
+* no findings UI or repair behavior exists;
+* verification passes;
+* fresh independent review approves;
+* traceability records real evidence;
+* `CurrentIndex.yaml` remains on SLC-005;
+* SLC-006 remains planned and untouched.
 
 ## SLC-006 — Application workflow and UI
 

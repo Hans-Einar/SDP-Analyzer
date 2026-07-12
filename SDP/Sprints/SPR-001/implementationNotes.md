@@ -912,3 +912,119 @@ The final disposition is approved with no actionable finding. Relations links
 events 033-034 record review approval and Slice completion. CurrentIndex
 remains on SLC-004 for supervising acceptance, while SLC-005 remains planned
 and untouched. No staging, commit, push or pull request was performed.
+
+## SLC-005 Activation — 2026-07-12
+
+Status: active; implementation authorized
+Slice: `SLC-005`
+Sprint: `SPR-001`
+Iteration: `ITR-001`
+
+The supervising architect accepted committed SLC-004 state
+`2023db3541cb3f3bd54d44027b843bf7ba70ea57`. The Master confirmed the passed
+`VER-SLC-004`, approved `REV-SLC-004`, completed SLC-004 relation, and immutable
+completion event 034 before transition. The full deterministic validation
+contract is now recorded in Scrum; CurrentIndex points to SLC-005, its relation
+is active with explicit requirement/architecture/design links, and immutable
+ledger events 035-036 record supervising acceptance and activation.
+
+SLC-001 through SLC-004 remain completed. SLC-006 and SLC-007 remain planned
+and untouched. Product implementation is delegated to a bounded fresh Worker.
+
+## SLC-005 Worker Implementation — 2026-07-12
+
+Implemented the bounded presentation-neutral validation Slice. Added the
+canonical Finding and AnalysisContext contracts, structural JSON-tuple
+fingerprints, deterministic severity/rule/entity/source/fingerprint ordering,
+the explicit SDP001-SDP008 registry, exception-isolated validation execution,
+and discover -> parse -> normalize -> validate application orchestration.
+
+Rule policies are explicit: SDP003 emits one finding per missing endpoint;
+SDP001 groups unavailable-source diagnostics by stable core path (or one
+synthetic project reference when listing failed); SDP004 groups rejected Ledger
+evidence by original sourced line; SDP006 evaluates only explicit hierarchy
+relations after both active IDs resolve; and SDP007 accepts only an explicit
+`verification` relation to a verification entity whose preserved `outcome` is
+exactly `passed`. All rule findings canonicalize and deduplicate entity IDs and
+sources and receive non-empty real or stable synthetic provenance.
+
+Added in-memory snapshot builders and deterministic tests for engine ordering,
+fingerprints, deduplication, exception isolation, input immutability and all
+eight rule evidence/absence cases. Added end-to-end application analysis over
+the bundled fixture. The fixture's Sprint requirement relation now targets its
+explicitly defined `REQSET-001`, keeping the supported fixture clean without
+inventing an entity and updating its contract-authored snapshot expectation.
+
+Verification evidence:
+
+- `npm ci`: passed; 270 packages installed, 0 vulnerabilities.
+- focused Vitest run: passed; 4 files, 20 tests.
+- `npm run typecheck`: passed.
+- `npm test`: passed; 16 files, 112 tests.
+- `npm run build`: passed; Vite built 1,976 modules. The pre-existing chunk-size
+  advisory remained non-fatal.
+- `npm ls SharedUI yaml --depth=0`: passed; `SharedUI@0.1.0`, `yaml@2.9.0`.
+- `git diff --check`: passed; only Git line-ending conversion warnings.
+- boundary scan across the new core/application surface found no React,
+  SharedUI, filesystem, ambient time/randomness, Markdown, health-score or
+  write-back imports/behavior.
+
+No UI, SLC-006, graph, Markdown parsing, repair, write-back, CLI/CI, commit,
+push or pull request work was performed. Master-owned CurrentIndex, Relations,
+Ledger and Scrum transition changes were preserved and not edited by this
+Worker. Fresh independent review and Master-owned verification/traceability
+decisions remain outstanding.
+
+## SLC-005 Master verification — 2026-07-12
+
+The Master inspected every new finding, validation, rule, application and test
+file and independently ran the exact SLC-005 gates. `npm ci`, typecheck, the
+focused 4-file/16-test verbose suite, full 16-file/112-test suite, build, exact
+dependency listing and `git diff --check` passed. Boundary scans found no
+React/SharedUI, filesystem, ambient-time/random, Markdown, health-score or write
+surface in the new core/application code; UI remained unchanged. Strict
+traceability assertions passed through immutable activation event 036.
+
+`VER-SLC-005` records the exact evidence, Relations links it as passed and
+immutable event 037 records verification. SLC-005 remains active pending fresh
+independent review; CurrentIndex remains on SLC-005 and SLC-006 remains planned.
+
+## SLC-005 Review Correction Worker — 2026-07-12
+
+Corrected exactly the two actionable `REV-SLC-005` findings. Failing SDP007
+findings now include canonical sources from every resolved verification target
+whose kind and outcome were inspected; genuinely missing targets continue to
+cite only the completed Slice and verification relation. Permanent focused
+regressions now cover source-location fingerprint changes, severity/source
+ordering, built-in-rule immutability and repeatability, unresolved active
+Iteration and Slice declarations, review-only SDP007 evidence, resolved
+wrong-kind/missing-outcome/failed-outcome target provenance, missing-target
+provenance, and malformed/non-object Ledger diagnostics with valid neighboring
+events retained.
+
+Correction evidence: `npm ci` passed (270 packages, 0 vulnerabilities); focused
+Vitest passed (4 files, 33 tests); typecheck passed; full Vitest passed (16
+files, 121 tests); build passed (1,976 modules, with the existing non-failing
+chunk-size advisory); dependency inspection retained `SharedUI@0.1.0` and
+`yaml@2.9.0`; `git diff --check` passed with line-ending warnings only. Boundary
+scans found no React/SharedUI/platform filesystem, ambient time/randomness,
+Markdown, health-score, repair/write-back or UI/SLC-006 additions in the
+corrected core/test surface. Master-owned Scrum, CurrentIndex, Relations,
+Ledger, VER and REV state was preserved; no completion transition, commit,
+push or pull request was performed.
+
+## SLC-005 final independent review and completion — 2026-07-12
+
+The first independent review required two bounded corrections: complete the
+minimum permanent regression coverage and include resolved verification-target
+entity provenance in non-qualifying SDP007 findings. A fresh correction Worker
+implemented only those changes. Master re-verification passed the focused
+4-file/25-test suite, full 16-file/121-test suite, typecheck, build, dependency,
+whitespace, boundary and traceability checks.
+
+A second fresh independent Reviewer confirmed both findings resolved, reran the
+same gates and approved SLC-005 with no remaining actionable finding. Relations
+now records SLC-005 completed, passed `VER-SLC-005` and approved
+`REV-SLC-005`; immutable events 040-041 record final approval and completion.
+CurrentIndex intentionally remains on SLC-005 for supervising acceptance.
+SLC-006 remains planned and untouched. No commit, push or pull request occurred.

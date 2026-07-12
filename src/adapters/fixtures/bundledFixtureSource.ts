@@ -28,7 +28,7 @@ const FIXTURE_TEXT_BY_PATH: Readonly<Record<string, string>> = Object.freeze({
   "SDP/Traceability/Ledger.ndjson":
     '{"event_id":"EVT-001","type":"sprint_opened","subject_id":"SPR-001"}\n{"event_id":"EVT-002","type":"iteration_opened","subject_id":"ITR-001","parent_id":"SPR-001"}\n{"event_id":"EVT-003","type":"slice_activated","subject_id":"SLC-003","parent_id":"ITR-001"}\n',
   "SDP/Traceability/Relations.yaml":
-    "documents:\n  REQSET-001:\n    path: SDP/03--Requirements/requirements.md\nsprints:\n  SPR-001:\n    requirements: [REQ-F-001]\niterations:\n  ITR-001:\n    sprint: SPR-001\n    slices: [SLC-003]\nslices:\n  SLC-003:\n    sprint: SPR-001\n    iteration: ITR-001\n    status: active\n",
+    "documents:\n  REQSET-001:\n    path: SDP/03--Requirements/requirements.md\nsprints:\n  SPR-001:\n    requirements: [REQSET-001]\niterations:\n  ITR-001:\n    sprint: SPR-001\n    slices: [SLC-003]\nslices:\n  SLC-003:\n    sprint: SPR-001\n    iteration: ITR-001\n    status: active\n",
   "SDP/Verification/verification-plan.md":
     "Placeholder bundled fixture verification plan.\n",
 });

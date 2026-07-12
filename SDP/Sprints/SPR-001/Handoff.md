@@ -1,63 +1,45 @@
-# Handoff — SLC-004
+# Handoff — SLC-005
 
-Status: SLC-004 completed; awaiting supervising acceptance
-Active Slice: `SLC-004`
-Sprint: `SPR-001`  
+Status: SLC-005 completed; awaiting supervising acceptance
+Active Slice: `SLC-005`
+Sprint: `SPR-001`
 Iteration: `ITR-001`
 
 ## Completion handoff
 
-The supervising architect accepted `SLC-001` on 2026-07-11 after passing
-`VER-SLC-001` evidence and final `REV-SLC-001` approval. The tracked
-`SharedUI-0.1.0.tgz` resolves the former reproducibility concern.
+The supervising architect accepted SLC-004 at committed state
+`2023db3541cb3f3bd54d44027b843bf7ba70ea57`. The Master expanded and activated
+the complete SLC-005 contract before product work, advanced CurrentIndex,
+activated the SLC-005 relation and appended immutable acceptance/activation
+events 035-036.
 
-The supervising architect accepted `SLC-002` on 2026-07-12 at committed state
-`90bd7b6b0474331e54c5716398ca1bc714b995c2`, after passing
-`VER-SLC-002` evidence and final `REV-SLC-002` approval. It establishes pure
-repository-path safety, readonly
-source/provenance and diagnostics contracts, the exact 14-file fixture, and
-content-blind deterministic discovery with complete, partial and unknown
-profile states.
+SLC-005 adds a framework-independent Finding model, explicit AnalysisContext
+and ValidationRule contracts, structural presentation-independent
+fingerprints, canonical finding ordering, an exception-isolated validation
+engine, the fixed Tier 1 registry SDP001-SDP008 and a presentation-neutral
+discover → parse → normalize → validate application operation. The bundled
+fixture remains clean and deterministic. No findings UI, Markdown extraction,
+filesystem acquisition, graph, repair, write-back, CLI/CI or SLC-006 behavior
+was introduced.
 
-The first review required one correction: a rejected source listing must report
-`unknown` rather than inventing partial structure and missing-core warnings.
-That bounded correction added a permanent regression test, passed the final
-24-test suite and received fresh independent approval.
+Master verification passed clean install, strict typecheck, focused and full
+tests, production build, exact dependency inspection, whitespace checks,
+boundary scans and strict traceability validation. The first independent review
+required complete minimum regressions and resolved verification-target
+provenance in SDP007 failures. A bounded correction Worker addressed only those
+findings. Final evidence is 4 focused files/25 tests and 16 full files/121 tests,
+with typecheck/build/dependencies/diff/boundaries passing. Fresh independent
+re-review approved with no remaining actionable finding.
 
-The supervising architect accepted `SLC-003` on 2026-07-12 at committed state
-`25418c4a505729f48b8ac5698307e6e3336fed75`, after passing
-`VER-SLC-003` and final `REV-SLC-003` approval.
+`Relations.yaml` records SLC-001 through SLC-005 completed, passed
+`VER-SLC-005` and approved `REV-SLC-005`. Ledger events 037-041 preserve the
+initial verification, changes-required review, corrected verification, final
+approval and Slice completion without rewriting history. `CurrentIndex.yaml`
+intentionally remains on `SPR-001 / ITR-001 / SLC-005` for supervising
+acceptance. SLC-006 remains planned and untouched.
 
-`CurrentIndex.yaml` points to `SPR-001 / ITR-001 / SLC-004`.
-`Relations.yaml` records SLC-001, SLC-002 and SLC-003 as completed and relates
-the real SLC-003 verification/review records. It records SLC-004 as completed
-with the complete normalization requirements, references, passed
-`VER-SLC-004` and approved `REV-SLC-004`. Ledger history preserves the prior
-SLC-002/SLC-003 verification, correction, review, completion and acceptance
-events without rewriting them, then appends SLC-004 activation, verification,
-review approval and completion events 031-034.
-
-SLC-004 is authorized only for deterministic, immutable, provenance-preserving
-normalization of the parsed CurrentIndex, Relations and Ledger evidence into a
-`ProjectSnapshot`, plus presentation-neutral application orchestration. It
-must not run validation rules, emit findings, parse Markdown, infer endpoint or
-active validity, implement a rule registry or begin SLC-005. No commit, push
-or pull request is authorized.
-
-The bounded SLC-004 Worker implementation is complete. The Master inspected
-the full implementation and permanent tests, then independently passed
-`npm ci`, strict typecheck, the 4-file/32-test focused suite, the complete
-13-file/97-test suite, production build, exact dependency resolution,
-`git diff --check`, implementation boundary scans and append-only traceability
-validation. `VER-SLC-004` records the exact evidence and ledger event 032
-records the passed verification. Fresh independent `REV-SLC-004` reproduced
-the complete command suite, boundary/no-diff checks, strict traceability and
-adversarial runtime probes, and approved the exact tree with no actionable
-finding. Ledger events 033-034 record approval and completion.
-
-`CurrentIndex.yaml` intentionally remains on SLC-004 for supervising
-acceptance. SLC-005 remains planned, untouched and unauthorized. No files were
-staged or committed, and no push or pull request was created.
+No files were staged or committed, and no push or pull request was created.
+Work stopped at the SLC-005 boundary.
 
 ## Original Codex Master prompt (fulfilled)
 

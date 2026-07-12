@@ -1,0 +1,4 @@
+import { describe, expect, it } from "vitest";
+import { bundledFixtureSource } from "../adapters/fixtures/bundledFixtureSource";
+import { analyzeProject } from "./analyzeProject";
+describe("analyzeProject", () => { it("orchestrates discover, parse, normalize, and validate deterministically", async () => { const context = { analyzerVersion: "0.1.0", profileId: "sdp-tier-1", analysisTime: "2026-07-12T00:00:00Z" }; const first = await analyzeProject(bundledFixtureSource, context); const second = await analyzeProject(bundledFixtureSource, context); expect(second).toEqual(first); expect(first.discovery.coreTraceability.currentIndex).toBeDefined(); expect(first.snapshot.entities.length).toBeGreaterThan(0); expect(first.validationDiagnostics).toEqual([]); expect(first.findings).toEqual([]); }); });
