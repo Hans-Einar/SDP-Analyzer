@@ -18,9 +18,9 @@ Authorized by `STU-001`, `REQSET-001`, `ARC-001`, `DAN-001`, `DES-001` and `IMP-
 Status: active  
 Iteration ID: `ITR-001`
 
-The Iteration executes the ordered Slice contracts below. `SLC-001` and
-`SLC-002` are completed and accepted. `SLC-003` is completed with final
-independent approval and awaits supervising acceptance.
+The Iteration executes the ordered Slice contracts below. `SLC-001`,
+`SLC-002` and `SLC-003` are completed and accepted. `SLC-004` is completed,
+verified and independently approved, and awaits supervising acceptance.
 
 ---
 
@@ -797,15 +797,441 @@ Worker. Master correction verification passed 36 focused and 65 full tests;
 the second fresh independent Reviewer approved the corrected tree with no
 remaining actionable finding.
 
-`CurrentIndex.yaml` intentionally remains pointed at
-`SPR-001 / ITR-001 / SLC-003` for supervising acceptance. `SLC-004` remains
-planned, untouched and unauthorized.
+The supervising architect accepted committed state
+`25418c4a505729f48b8ac5698307e6e3336fed75` on 2026-07-12. The Master then
+recorded acceptance and activated `SPR-001 / ITR-001 / SLC-004` before any
+SLC-004 product implementation.
 
 ## SLC-004 — Normalized traceability snapshot
 
-Status: planned
+Status: completed; awaiting supervising acceptance
+Slice ID: `SLC-004`
 
-Goal: map parsed structured files into canonical entities, relations, ledger events, active declarations and profile metadata.
+### Goal
+
+Transform successfully parsed raw CurrentIndex, Relations and Ledger records
+into one immutable, deterministic and provenance-preserving normalized
+`ProjectSnapshot`.
+
+This Slice establishes the canonical domain representation used by future
+validation rules. It must not implement validation findings, rule execution,
+UI health conclusions or Markdown entity extraction.
+
+### Why now
+
+SLC-003 created trustworthy source-local raw parser outputs. The next required
+boundary is normalization: converting supported raw structures into stable
+entities, directed relations, ledger events, active declarations, diagnostics
+and compatibility metadata without silently inventing missing data. SLC-005
+validation must operate on one canonical snapshot rather than raw YAML/NDJSON
+shapes.
+
+### Requirements implemented
+
+Primary: `REQ-D-005`, `REQ-D-006`, `REQ-P-001`, `REQ-P-004`,
+`REQ-NF-001`, `REQ-NF-002`, `REQ-M-001`, `REQ-M-003`.
+
+Partial/foundation: `REQ-F-003`, `REQ-V-002`, `REQ-V-003`, `REQ-V-005`,
+`REQ-V-006`, `REQ-V-007`, `REQ-C-001`, `REQ-C-002`, `REQ-NF-004`,
+`REQ-T-001`, `REQ-T-003`.
+
+SLC-004 does not claim validation requirements as fully satisfied. It provides
+only the normalized facts required by later rules.
+
+### Architecture and design references
+
+`ARC-COMP-003`, `ARC-COMP-004`, `ARC-COMP-005`, `ARC-COMP-006`,
+`ARC-COMP-011`; `ADR-002`, `ADR-003`, `ADR-004`, `ADR-005`, `ADR-008`;
+`DEC-STU-006`, `DEC-STU-007`, `DEC-STU-009`, `DEC-STU-010`,
+`DEC-STU-011`; `DES-001` sections 2, 3, 4, 7, 8, 12, 13 and 14.
+
+### Required implementation
+
+#### 1. Canonical normalized domain types
+
+Implement the Tier 1 normalized types from `DES-001`, including:
+
+- extensible `EntityKind` with recognized mandate, study, requirement,
+  architecture-decision, design-decision, tier, sprint, iteration, slice,
+  verification, review and unknown values;
+- `Entity` with stable ID, kind, optional status/title, complete raw
+  attributes and source provenance;
+- directed `Relation` with stable ID, type, from/to IDs and provenance;
+- `LedgerEvent` with original sequence, optional safely typed convenience
+  fields, raw payload and exact line source;
+- `ActiveDeclaration` with explicit string/null values and source;
+- `ProjectSnapshot` with profile, discovered sources, diagnostics, entities,
+  relations, ledger events and optional active declaration.
+
+Names may be refined only when repository conventions justify it. Types must
+remain readonly, serializable and presentation-neutral. Do not introduce a
+graph-library type.
+
+#### 2. Normalization input
+
+Create one pure, normally synchronous normalization operation accepting:
+
+- `ProjectDiscoveryManifest`;
+- optional parsed CurrentIndex result;
+- optional parsed Relations result; and
+- optional parsed Ledger result.
+
+A suitable input is `NormalizeTraceabilityInput` and a suitable operation is
+`normalizeTraceability(input): ProjectSnapshot`. The normalizer performs no
+filesystem read and depends on no source adapter.
+
+#### 3. Source and diagnostics preservation
+
+The snapshot shall include all discovered file provenance, discovery
+diagnostics, parser diagnostics, normalization diagnostics, active-declaration
+provenance, entity provenance, relation provenance and Ledger line provenance.
+
+Do not replace `SourceRef` with UI IDs or fabricate line/column positions.
+Deduplicate identical provenance references deterministically when needed.
+
+#### 4. CurrentIndex normalization
+
+Preserve supported project metadata at snapshot level when practical without
+inventing a project stable ID. Normalize only explicit typed active sprint,
+refactor, iteration and slice values.
+
+Missing active values remain missing; explicit null remains null; invalid raw
+values do not become typed active IDs; active references do not create entities;
+and this Slice does not assess existence, validity or hierarchy consistency.
+Active provenance retains the CurrentIndex source and useful structured
+pointers.
+
+#### 5. Relations entity normalization
+
+Normalize explicit stable keyed records in supported installed-profile
+sections such as `documents`, `tiers`, `sprints`, `iterations`, `slices`,
+`reviews`, `verification` and possible `refactors`.
+
+An entity may be created only from an explicit stable definition key in a
+supported Relations section. Do not create entities from relation targets,
+CurrentIndex active IDs, Ledger subject IDs, Markdown filenames or prose.
+
+Section mapping rules:
+
+- `documents`: infer a subtype only when explicitly and reliably encoded;
+  otherwise use `unknown` without ID-prefix guessing;
+- `tiers`: `tier`;
+- `sprints`: `sprint`;
+- `iterations`: `iteration`;
+- `slices`: `slice`;
+- `reviews`: `review`;
+- `verification`: `verification`;
+- `refactors`: use an accepted extension or `unknown`.
+
+Preserve unknown raw fields in `attributes`. Extract status, title or path only
+when the source shape is explicitly supported and type-safe, without removing
+the raw field from attributes.
+
+#### 6. Directed relation extraction
+
+Create normalized directed relations only from explicit supported relationship
+fields in the current profile, including fields such as `derives_from`,
+`tier`, `sprint`, `iteration`, `slice`, `slices`, `requirements`,
+`architecture`, `study_decisions`, `design`, `verification_plan`,
+`verification`, `review` and other deliberately documented current-profile
+fields.
+
+Every relation has a deterministic presentation-independent ID, explicit type,
+from ID, to ID and provenance for its field/value. Preserve unresolved target
+IDs without requiring endpoints to exist or emitting findings. Never infer a
+reverse relation. Arrays produce one relation per explicit string target;
+supported scalar target fields produce one relation. Invalid relation values
+produce normalization diagnostics, not guessed relations.
+
+Duplicate explicit relations may remain distinguishable through canonical
+source pointers or be canonically deduplicated under one documented
+deterministic policy. Relation IDs may derive from source ID, relation type,
+target ID and canonical source pointer. Random IDs are prohibited.
+
+#### 7. Ledger normalization
+
+Convert every valid raw Ledger object to `LedgerEvent`. Safely extract optional
+string convenience fields from `type`, `subject_id` and `timestamp`; missing or
+invalid fields remain absent while the complete raw payload is preserved.
+
+Retain the original source-line sequence and ordering. Do not validate event
+IDs or timestamps, sort chronologically, reconstruct state, infer completion or
+create events from malformed lines. Malformed-line parser diagnostics remain
+diagnostics only.
+
+#### 8. Compatibility normalization
+
+Use discovery profile support as the initial status. Normalization may reduce
+`supported` to `partial` when required parsed input is missing, failed or lacks
+a usable value. It must never upgrade `partial`, `unsupported` or `unknown` to
+`supported`.
+
+Document and test this monotonic support rule. Do not claim a historical
+profile is supported merely because some fields normalize.
+
+#### 9. Normalization diagnostics and duplicate IDs
+
+Use stable `NORMALIZE_*` codes separate from parser diagnostics and future
+`SDP001` through `SDP008` rule IDs. Applicable codes include required-source
+unavailable, invalid entity record, invalid relation value, duplicate entity
+definition, unsupported section, invalid Ledger convenience field and active
+field unavailable.
+
+Diagnostics describe inability to normalize input; future findings describe
+semantic project problems. Do not emit findings in this Slice.
+
+When the same explicit entity ID is defined more than once, do not collapse it
+silently. Choose and document one deterministic policy:
+
+1. expose one canonical entity and diagnostics preserving every definition
+   source; or
+2. retain explicit multiple definitions while exposing a canonical entity
+   view.
+
+Do not emit the future duplicate-ID validation finding. Every definition
+location must remain recoverable.
+
+#### 10. Canonical ordering and stable identity
+
+Canonical deterministic ordering is mandatory:
+
+- sources by canonical path and source location;
+- diagnostics by stable code and provenance;
+- entities by kind, ID and canonical source location;
+- relations by type, from, to and source location;
+- Ledger events in original source line order; and
+- active fields in fixed serialized property order.
+
+Repeated normalization of identical input must be deep-equal. No ambient time
+may participate. Relation IDs must remain stable across repeated runs.
+
+#### 11. Immutability
+
+Use readonly types and avoid exposing mutable internal arrays or maps. The
+normalizer must not mutate discovery or parser inputs. Do not add an elaborate
+deep-freeze framework without demonstrated need. Add a permanent test proving
+inputs are unchanged.
+
+#### 12. Application orchestration
+
+Add a presentation-neutral operation, such as `loadProjectSnapshot`, that
+performs:
+
+```text
+discover -> read/parse three core files -> normalize
+```
+
+It returns discovery, useful raw parser results and the normalized snapshot.
+It does not run validation rules.
+
+#### 13. Fixture evolution
+
+Change the bundled fixture only as needed to exercise explicit entities,
+directed relations, active declarations, valid Ledger events, provenance and
+unresolved relation targets. Keep duplicate/broken definitions in separate
+test inputs. Do not copy live repository files or add fake verification claims.
+
+The default bundled fixture shall remain internally coherent enough for a clean
+normalization smoke result.
+
+#### 14. UI boundary
+
+UI change is optional. If changed, display only truthful normalized facts such
+as entity/relation/Ledger counts, declared active IDs, compatibility and
+diagnostic count. Do not display semantic findings, dangling-reference
+warnings, completion conclusions, a health score, recommendations or a graph.
+
+Reuse SharedUI baseline components and the existing registry/config. Do not
+create generic local UI primitives.
+
+### Expected modules
+
+A cohesive implementation will normally use:
+
+```text
+src/core/domain/
+  Entity.ts
+  Relation.ts
+  LedgerEvent.ts
+  ActiveDeclaration.ts
+  ProjectSnapshot.ts
+
+src/core/normalization/
+  normalizeTraceability.ts
+  normalizeCurrentIndex.ts
+  normalizeRelations.ts
+  normalizeLedger.ts
+  normalizationDiagnostics.ts
+  canonicalOrdering.ts
+
+src/application/
+  loadProjectSnapshot.ts
+```
+
+Exact filenames may differ, but domain, normalization and application
+responsibilities must remain clear.
+
+### Invariants
+
+- No React or SharedUI import in core, normalization, application or adapters.
+- No browser or Node filesystem import in core normalization.
+- No source or parser/discovery input mutation.
+- No analyzed-code execution or Markdown parsing.
+- No entity creation from unresolved targets, CurrentIndex references or
+  Ledger references alone.
+- No cross-file validation findings, rule registry or finding model.
+- No relation-endpoint or active-hierarchy validation.
+- No completion interpretation or health score.
+- Provenance is preserved.
+- Compatibility support cannot be upgraded.
+- Ledger order is preserved.
+- Snapshot output and IDs are deterministic.
+- Existing SLC-001 through SLC-003 behavior remains functional.
+
+### Explicit non-goals
+
+- validation rules or `Finding`;
+- finding fingerprints or `SDP001` through `SDP008`;
+- dangling-reference, duplicate-ID, active hierarchy,
+  completion-without-verification or stale-work findings;
+- Markdown entity/stable-ID extraction;
+- verification-record interpretation beyond raw normalization;
+- File System Access API or Node filesystem adapter;
+- graph visualization, JSON report export, CLI or CI;
+- automatic repair or write-back;
+- broad SharedUI changes;
+- any SLC-005 work.
+
+### Required tests
+
+At minimum, tests shall cover:
+
+1. complete valid parser inputs produce a snapshot;
+2. parser diagnostics are retained;
+3. discovery diagnostics are retained;
+4. a missing parser result reduces compatibility support;
+5. normalization never upgrades compatibility support;
+6. repeated normalization is deep-equal;
+7. input objects remain unchanged;
+8. explicit Relations section keys produce entities;
+9. active IDs alone do not create entities;
+10. relation targets alone do not create entities;
+11. Ledger subject IDs alone do not create entities;
+12. unknown entity attributes remain preserved;
+13. typed status/title extraction does not discard raw attributes;
+14. entity provenance identifies the explicit definition;
+15. duplicate entity definitions preserve all sources and diagnose;
+16. entity ordering is deterministic;
+17. scalar explicit relationship fields produce directed relations;
+18. array fields produce one relation per explicit target;
+19. unresolved targets remain represented;
+20. no reverse relation is invented;
+21. invalid relation values produce diagnostics;
+22. relation provenance identifies the field/value;
+23. relation IDs are stable across repeated runs;
+24. relation ordering is deterministic;
+25. explicit active values normalize;
+26. null remains null;
+27. missing remains missing;
+28. invalid raw fields remain absent from typed active values;
+29. no active hierarchy validation occurs;
+30. valid raw records become Ledger events;
+31. original Ledger sequence/order is preserved;
+32. supported convenience fields are extracted safely;
+33. raw Ledger payload remains preserved;
+34. invalid convenience-field types do not erase an event;
+35. malformed source lines remain diagnostics only;
+36. no duplicate-ID or chronology validation occurs;
+37. discover/read/parse/normalize application flow succeeds;
+38. one unavailable parsed source preserves neighboring results;
+39. normalization/application import no React, SharedUI or platform filesystem;
+40. no validation rule or finding implementation exists;
+41. existing parser/discovery tests remain passing; and
+42. rendered UI smoke remains passing if UI changes.
+
+### Verification
+
+Run and record exact outcomes for:
+
+1. `npm ci`;
+2. `npm run typecheck`;
+3. `npm test`;
+4. `npm run build`;
+5. `npm ls SharedUI yaml --depth=0`;
+6. `git diff --check`.
+
+Run lint only if configured. Also perform focused checks for input immutability,
+stable relation IDs, canonical ordering, Ledger source order, no entity creation
+from references alone, no validation/finding imports or behavior and no
+SLC-005 work. Perform a rendered smoke check only if UI changes.
+
+Create `VER-SLC-004` only after real checks run.
+
+### Independent review
+
+Use a fresh independent Reviewer after implementation and Master verification.
+The Reviewer must inspect normalized domain boundaries, entity-creation rules,
+relation extraction, duplicate-definition preservation, provenance,
+compatibility monotonicity, Ledger ordering/payload fidelity, canonical
+ordering, deterministic IDs, input immutability, absence of semantic
+validation/findings, actual verification evidence and traceability.
+
+Create `REV-SLC-004` only after independent review. If changes are required,
+delegate a bounded correction Worker, repeat applicable verification and use a
+fresh independent review context.
+
+### Completion signal
+
+SLC-004 is complete when parsed core inputs normalize into one deterministic
+`ProjectSnapshot`; explicit definitions produce entities; explicit relationship
+fields produce directed relations; unresolved references remain represented
+but unjudged; active declarations retain explicit unresolved values; valid
+Ledger objects become ordered events; diagnostics and provenance are preserved;
+duplicate definitions are not silently lost; compatibility is monotonic; no
+validation findings or rule engine exists; verification passes; fresh review
+approves; and traceability records real evidence.
+
+`CurrentIndex.yaml` must remain on `SLC-004` after completion. `SLC-005`
+must remain planned and untouched.
+
+### Discoveries policy
+
+Resolve only discoveries needed for normalization that do not alter accepted
+architecture, requirements or Tier boundaries. Record, but do not implement,
+Markdown entity extraction, validation-rule design changes, stale-work policy,
+graph/report needs, browser or Node adapters, repair/write-back and SharedUI
+package improvements.
+
+If implementation requires changing accepted architecture or domain contracts,
+stop and return the exact conflict to the supervising architect.
+
+### Stop condition
+
+Stop immediately after SLC-004 verification, review and traceability updates.
+Do not begin `SLC-005`.
+
+### Master verification checkpoint — 2026-07-12
+
+The bounded Worker completed the authorized normalization implementation. The
+Master inspected the complete product/test tree and created `VER-SLC-004` only
+after independently passing a clean install, strict typecheck, the focused
+4-file/32-test suite, the full 13-file/97-test suite, production build, exact
+dependency resolution, whitespace check, implementation-boundary scans and
+append-only traceability validation. No UI, dependency, fixture or SLC-001
+through SLC-003 product source changed. At that checkpoint, SLC-004 remained
+active pending fresh independent review; SLC-005 remained planned and
+untouched.
+
+### Completion record — 2026-07-12
+
+Fresh independent `REV-SLC-004` reproduced the clean install, typecheck,
+focused 32-test suite, full 97-test suite, production build, dependency and
+whitespace gates, boundary/no-diff scans, strict append-only traceability and
+adversarial runtime probes. The Reviewer approved the exact uncommitted tree
+with no actionable finding. Relations and ledger events 033-034 record the
+approved review and SLC-004 completion. `CurrentIndex.yaml` intentionally
+remains on SLC-004 for supervising acceptance; SLC-005 remains planned and
+untouched.
 
 ## SLC-005 — Deterministic validation
 

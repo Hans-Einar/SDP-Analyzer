@@ -332,7 +332,7 @@ the required Master traceability transition before product implementation.
 
 ## SLC-003 Implementation
 
-Status: completed; final independent review approved; awaiting supervising acceptance
+Status: completed; final independent review approved; supervising architect accepted
 Slice: `SLC-003`
 Sprint: `SPR-001`
 Iteration: `ITR-001`
@@ -648,8 +648,267 @@ boundary, README, UI no-diff, whitespace and traceability evidence. All three
 original findings are resolved and no new actionable finding was identified.
 The appended final `REV-SLC-003` disposition is approved.
 
-`Relations.yaml` now records SLC-003 completed and `REV-SLC-003` approved.
-Ledger events 025-029 record initial verification, changes-required review,
-bounded correction, final approval and Slice completion without rewriting
-earlier history. `CurrentIndex.yaml` remains on SLC-003 for supervising
-acceptance. SLC-004 remains planned and untouched.
+`Relations.yaml` records SLC-003 completed and `REV-SLC-003` approved. Ledger
+events 025-029 record initial verification, changes-required review, bounded
+correction, final approval and Slice completion without rewriting earlier
+history. The supervising architect accepted committed state
+`25418c4a505729f48b8ac5698307e6e3336fed75` on 2026-07-12.
+
+---
+
+## SLC-004 Activation
+
+Status: active; implementation authorized
+Slice: `SLC-004`
+Sprint: `SPR-001`
+Iteration: `ITR-001`
+Date: 2026-07-12
+
+The Master re-anchored from the accepted SLC-003 commit, confirmed passing
+`VER-SLC-003` and final approved `REV-SLC-003`, recorded supervising architect
+acceptance in ledger event 030, expanded the complete SLC-004 normalization
+contract, advanced `CurrentIndex.yaml` to SLC-004, marked the SLC-004 relation
+active and appended activation event 031 before product implementation.
+
+SLC-001 through SLC-003 remain completed. SLC-005 remains planned and
+untouched.
+
+---
+
+## SLC-004 Worker Implementation and Evidence
+
+Status: bounded Worker implementation pass finished; pending Master
+verification and fresh independent review
+Slice: `SLC-004`
+Sprint: `SPR-001`
+Iteration: `ITR-001`
+Date: 2026-07-12
+
+This section records only the bounded Worker implementation and actual command
+evidence. It does not create or claim `VER-SLC-004`, `REV-SLC-004`, Master
+verification, review approval, Slice completion, supervising acceptance or a
+transition to `SLC-005`. The Master-authored activation changes to Scrum,
+Handoff, CurrentIndex, Relations and Ledger were preserved.
+
+### Domain and normalization decisions
+
+- Added readonly presentation-neutral domain contracts for extensible
+  `EntityKind`, `Entity`, `Relation`, `LedgerEvent`, `ActiveDeclaration`, raw
+  explicit project metadata and `ProjectSnapshot`. Active declarations retain
+  fixed-order sprint/refactor/iteration/slice properties plus per-field
+  provenance. Project metadata remains snapshot-level data and never becomes a
+  project entity.
+- `normalizeTraceability` is pure and synchronous. It accepts discovery plus
+  optional parsed CurrentIndex, Relations and Ledger results. Optional
+  application diagnostics are additive so read failures without a parsed
+  result survive; discovery and every present parser diagnostic are always
+  included, then exact duplicates are removed canonically.
+- Snapshot-owned arrays, objects, raw attributes, payloads, provenance and
+  diagnostics are cloned and frozen. Input arrays are never sorted in place.
+  Sources sort by path/location/pointer, diagnostics by
+  code/provenance/message, entities by kind/ID/source and relations by
+  type/from/to/source. Ledger events preserve parser record order and sequence.
+- Entities are created only from non-empty explicit keys in supported
+  Relations sections. Tier/Sprint/Iteration/Slice/Review/Verification map to
+  their fixed kinds. Documents remain `unknown` unless the explicit raw `kind`
+  is an accepted document subtype; Refactors remain `unknown` unless
+  `kind: refactor` is explicit. Raw attributes are retained when typed string
+  status/title/path fields are exposed. Active IDs, relation targets, Ledger
+  subjects and project metadata do not create entities.
+- Duplicate IDs use one canonical entity policy. Valid definitions sort by
+  kind then source and the first supplies canonical attributes. Every stable
+  definition-key source, including an invalid-shaped definition beside a
+  valid one, remains on the canonical entity and receives a sourced
+  `NORMALIZE_DUPLICATE_ENTITY_DEFINITION` diagnostic. Relations are extracted
+  from every valid definition. Invalid records remain diagnostics and never
+  cause guessed entities. No duplicate-ID finding is emitted.
+- The deliberate relationship-field set is `derives_from`, `decisions`,
+  `tier`, `sprint`, `iteration`, `slice`, `slices`, `requirements`,
+  `architecture`, `study_decisions`, `design`, `verification_plan`,
+  `verification` and `review`. Non-empty scalar strings and non-empty string
+  array elements become directed relations. Invalid values/elements are
+  diagnosed independently and valid neighbors remain. Metadata fields are not
+  relations, endpoints are not resolved and reverse edges are never inferred.
+- Relation provenance uses a truthful pointer-only `SourceRef` for
+  `/section/id/field[/index]` because SLC-003 does not expose exact nested field
+  ranges. Entity definitions retain their exact parser-derived range. Relation
+  IDs use the unambiguous plain-text JSON tuple
+  `[from,type,to,sourceId,path,kind,lineStart,columnStart,lineEnd,columnEnd,pointer]`
+  prefixed by `relation:`. Missing locations encode as `null`; there is no
+  UUID, hash or presentation input. An identical full occurrence tuple is
+  deduplicated with canonical source merging; different pointers remain
+  distinct.
+- Compatibility begins exactly at discovery support. Missing/value-less
+  required parser results or an unavailable supported Relations structure
+  reduce only `supported` to `partial`. `partial`, `unsupported` and `unknown`
+  never upgrade. Unresolved references, active hierarchy and Ledger semantics
+  do not affect compatibility.
+- Every valid raw Ledger record becomes one event with the original sequence,
+  exact line source and complete cloned payload. `type`, `subject_id` and
+  `timestamp` are extracted only when strings. Invalid convenience types are
+  normalization diagnostics and do not erase the event. Event IDs,
+  timestamps, duplicates, chronology, state and completion are not validated.
+- Added `loadProjectSnapshot`, which reuses the existing one-pass
+  discover/read/parse operation, carries its complete diagnostics into
+  normalization and returns discovery, useful raw results and the snapshot.
+  It runs no validation.
+
+### Permanent coverage
+
+- The contract-authored complete bundled expectation asserts all 14 sorted
+  sources, supported profile, zero diagnostics, raw project metadata, four
+  explicit entities, five directed relations with hard-coded IDs/pointers,
+  three ordered Ledger events and the exact active declaration. It asserts the
+  unresolved `REQ-F-001` target does not become an entity.
+- The focused permanent suite makes all 42 numbered contract cases explicit:
+  cases 1-40 are named in the normalization/application tests; case 41 is the
+  preserved full discovery/parser/source/UI suite; case 42 is the unchanged
+  rendered SharedUI smoke included in that full suite. Coverage includes
+  missing and failed parser results, all monotonic support states, deterministic
+  source/diagnostic/entity/relation ordering, non-mutation and deep ownership,
+  every supported entity section and relationship field, invalid records and
+  relation neighbors, duplicate definitions, pointer escaping, stable
+  occurrence IDs, explicit/null/missing/invalid active fields, Ledger payload
+  fidelity and order, partial application failure and implementation-only
+  import/scope boundaries.
+
+### Development corrections and read-only audit
+
+- The first development `npm ci` passed but printed a non-fatal Windows
+  `EPERM` cleanup warning for an optional Rolldown WASI nested directory. The
+  final clean install below completed without that warning.
+- The first development typecheck found four local authoring errors: one
+  unused type import and three empty-array `readonly never[]` inference errors.
+  Explicit snapshot collection types and removal of the unused import resolved
+  them; every later typecheck passed.
+- An attempted inline `vite-node -e` snapshot probe failed before product code
+  ran because this installed CLI requires a file. A temporary file-based probe
+  then succeeded; the temporary file was deleted before tests and is absent
+  from the final scope.
+- A fresh read-only implementation audit (not the formal SDP review) found
+  four edge cases: optional diagnostics could suppress parser evidence,
+  invalid-shaped duplicate keys lacked structured duplicate evidence, empty
+  relation targets were accepted, and a project `__proto__` key could corrupt
+  its field-source map. The Worker made diagnostics additive, tracks stable
+  definition occurrences before shape rejection, requires non-empty relation
+  targets and defines project field-source keys as own data properties. Four
+  permanent regressions were added. A targeted read-only recheck found all four
+  resolved and no introduced regression.
+
+### Worker-changed files
+
+- `README.md`
+- `src/core/domain/ActiveDeclaration.ts`
+- `src/core/domain/Entity.ts`
+- `src/core/domain/LedgerEvent.ts`
+- `src/core/domain/ProjectSnapshot.ts`
+- `src/core/domain/Relation.ts`
+- `src/core/normalization/canonicalOrdering.ts`
+- `src/core/normalization/normalizeCurrentIndex.ts`
+- `src/core/normalization/normalizeRelations.ts`
+- `src/core/normalization/normalizeLedger.ts`
+- `src/core/normalization/normalizeTraceability.ts`
+- `src/core/normalization/bundledFixtureSnapshot.test.ts`
+- `src/core/normalization/normalizeTraceability.test.ts`
+- `src/core/normalization/normalizationBoundaries.test.ts`
+- `src/application/loadProjectSnapshot.ts`
+- `src/application/loadProjectSnapshot.test.ts`
+- `SDP/Sprints/SPR-001/implementationNotes.md` (this appended Worker section
+  only)
+
+No dependency, lockfile, fixture or UI source changed.
+
+### Final Worker command evidence
+
+- `npm ci`: passed; added 270 packages, audited 271 packages in 10 seconds and
+  reported zero vulnerabilities.
+- `npm run typecheck`: passed with no TypeScript diagnostics.
+- Focused command
+  `npm test -- src/core/normalization/normalizeTraceability.test.ts src/core/normalization/bundledFixtureSnapshot.test.ts src/core/normalization/normalizationBoundaries.test.ts src/application/loadProjectSnapshot.test.ts --reporter=verbose`:
+  passed; 4 files and all 32 tests passed, with individual case names visible.
+- `npm test`: passed with Vitest `4.1.10`; 13 files and all 97 tests passed,
+  including every preserved discovery/parser/source test and the unchanged
+  jsdom SharedUI rendered smoke.
+- `npm run build`: passed. Vite `8.1.4` transformed 1,976 modules and emitted
+  0.53 kB HTML, 72.91 kB CSS and 510.87 kB JavaScript (150.91 kB gzip). The
+  pre-existing non-failing greater-than-500-kB chunk warning remains.
+- `npm ls SharedUI yaml --depth=0`: passed with `SharedUI@0.1.0` and direct
+  `yaml@2.9.0`.
+- Three implementation-only `rg` scans returned exit code 1 with no matches
+  for forbidden UI/framework/fixture imports; browser/Node filesystem,
+  execution, mutation or ambient identity/time APIs; or Markdown, validation,
+  finding/fingerprint, `SDP001`-`SDP008`, graph, report or repair surfaces.
+- `git diff --quiet 25418c4a505729f48b8ac5698307e6e3336fed75 -- src/ui src/main.tsx`
+  returned exit code 0. No UI source changed, so no new live browser run was
+  performed or claimed. The unchanged rendered test passed in the full suite.
+- `git diff --quiet -- package.json package-lock.json src/adapters/fixtures/bundledFixtureSource.ts`
+  returned exit code 0, confirming no dependency/lock/fixture change.
+- `git diff --check`: passed with exit code 0; output was limited to the
+  repository's existing Windows LF-to-CRLF working-copy notices.
+- No lint command is configured, so lint was not run.
+
+### Limitations and stop boundary
+
+- Relation field/value provenance is pointer-only because the SLC-003 raw
+  Relations contract exposes exact ranges only for sections and entity
+  definitions. No line/column values were fabricated.
+- Normalization reports structural inability only. It intentionally does not
+  decide endpoint existence, duplicate-ID meaning, active validity/hierarchy,
+  verification qualification, completion, chronology or project health.
+- The Worker did not edit Scrum, Handoff, CurrentIndex, Relations, Ledger,
+  verification or review records. No commit, staging, push or pull request was
+  performed.
+- Work stopped at the SLC-004 boundary. No Markdown parsing, validation rule,
+  `Finding`, fingerprint, `SDP001`-`SDP008`, rule registry, filesystem adapter,
+  graph/report/repair/CLI/CI or SLC-005 behavior was added.
+
+## SLC-004 Master verification — 2026-07-12
+
+The Master read the complete Worker handoff and every new domain,
+normalization, application and test file. The implementation conforms to the
+active contract: entities arise only from explicit supported Relations keys;
+directed relations preserve unresolved targets without judging them; duplicate
+definitions preserve every source under a deterministic canonical-entity
+policy; active declarations and Ledger events remain factual; compatibility is
+monotonic; and output ordering, identity, provenance, ownership and
+immutability are deterministic.
+
+Independent Master commands passed: `npm ci` (270 packages added, 271 audited,
+zero vulnerabilities), `npm run typecheck`, the focused 4-file/32-test verbose
+suite, the full 13-file/97-test suite, `npm run build`,
+`npm ls SharedUI yaml --depth=0` and `git diff --check`. Implementation-only
+boundary scans found no UI/platform filesystem, validation/finding, ambient
+identity/time, Markdown, graph, repair or SLC-005 behavior. Git comparisons
+confirmed no UI, dependency/lock/fixture or SLC-001 through SLC-003 product
+change. Strict traceability validation confirmed 32 unique append-only Ledger
+events with the accepted first 29 lines unchanged, CurrentIndex on SLC-004,
+SLC-001 through SLC-003 completed and SLC-005 planned.
+
+`VER-SLC-004` contains the exact verification record. SLC-004 remains active
+pending a fresh independent Reviewer. No staging, commit, push or pull request
+was performed.
+
+## SLC-004 independent review and completion — 2026-07-12
+
+Fresh independent `REV-SLC-004` re-anchored from the repository and inspected
+the complete contract, source, tests, verification and latest traceability.
+It independently reproduced `npm ci`, typecheck, the focused 4-file/32-test
+suite, all 13 files/97 tests, build, exact dependency resolution,
+`git diff --check`, implementation boundaries, UI/dependency/fixture and prior
+product no-diff checks, and strict 32-event append-only traceability.
+
+Adversarial read-only probes also passed for explicit-only entity creation,
+valid/invalid duplicate definitions, hostile prototype-named keys, distinct
+relation occurrences and IDs, unresolved targets, Ledger gaps/order/payload,
+active null-versus-invalid distinctions, deep repeatability/ownership and a
+source-list failure retaining `unknown` support without invented facts. Two
+initial stdin launch attempts failed before product import because the harness
+could not resolve bundler-style TypeScript imports; the same probes passed with
+a read-only Node loader. The Reviewer correctly classified those as harness,
+not product, failures.
+
+The final disposition is approved with no actionable finding. Relations links
+`VER-SLC-004` and `REV-SLC-004` and records SLC-004 completed. Immutable Ledger
+events 033-034 record review approval and Slice completion. CurrentIndex
+remains on SLC-004 for supervising acceptance, while SLC-005 remains planned
+and untouched. No staging, commit, push or pull request was performed.
