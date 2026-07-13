@@ -1,9 +1,50 @@
-# Handoff — SLC-006
+# Handoff — SLC-007
 
-Status: SLC-006 completed; awaiting supervising acceptance
-Active Slice: `SLC-006`
+Status: SLC-007 blocked; supervising requirement/architecture direction required
+Active Slice: `SLC-007`
 Sprint: `SPR-001`
 Iteration: `ITR-001`
+
+## Current SLC-007 handoff
+
+The supervising architect accepted completed SLC-006 at committed state
+`d08e097f2813231ca29c13293459697aace2e706` after passed `VER-SLC-006` and final
+approved `REV-SLC-006`. The Master recorded immutable acceptance event 054,
+expanded the complete SLC-007 contract, advanced CurrentIndex, activated the
+full SLC-007 relation and appended activation event 055 before product work.
+
+SLC-001 through SLC-006 remain completed. CurrentIndex remains on SLC-007, but
+implementation is blocked by the governing conflict below. Local folder
+access, Markdown parsing, graph/report, CLI/CI, repair/write-back, SharedUI
+package changes and every other Tier 2 capability remain unauthorized.
+
+No product code, commit, push or pull request was produced by the administrative
+transition or the stopped Worker pass.
+
+## Blocking discovery requiring supervising direction
+
+Tier 1 cannot be accepted exactly as currently specified:
+
+- REQ-D-003 and STU-001 require Markdown structural-heading and explicit
+  stable-ID extraction, but the implementation reads only CurrentIndex,
+  Relations and Ledger content and SLC-007 expressly forbids Markdown parsing
+  or ID extraction. REQ-V-002 and REQ-C-001 are therefore only partial for the
+  complete supported profile.
+- DEC-STU-011 requires qualifying verification evidence to identify its subject
+  and contain a command/check description and outcome. SDP007 currently accepts
+  structured relation + verification kind + outcome: passed, without reading
+  the verification record content.
+
+The supervising architect must choose one direction before SLC-007 resumes:
+
+1. narrow the Tier 1 Requirements/Study/Architecture and verification
+   qualification semantics to the existing structured three-file boundary; or
+2. revise SLC-007 authorization and architecture to permit bounded Markdown ID,
+   structure and verification-record extraction.
+
+The Master did not make this product/requirements decision. Immutable event 056
+records the block. VER-SLC-007, VER-TIER-001, REV-SLC-007 and REV-TIER-001 do
+not exist, and Sprint/Iteration/Tier completion is not claimed.
 
 ## SLC-006 activation history
 

@@ -18,9 +18,10 @@ Authorized by `STU-001`, `REQSET-001`, `ARC-001`, `DAN-001`, `DES-001` and `IMP-
 Status: active  
 Iteration ID: `ITR-001`
 
-The Iteration executes the ordered Slice contracts below. `SLC-001` through
-`SLC-005` are completed and accepted. `SLC-006` is completed and awaits
-supervising acceptance; `SLC-007` remains planned.
+The Iteration executes the ordered Slice contracts below. SLC-001 through
+SLC-006 are completed and accepted. SLC-007 was activated for final Tier 1
+integration and is blocked pending supervising requirement/architecture
+direction recorded in its blocking discovery.
 
 ---
 
@@ -804,7 +805,7 @@ SLC-004 product implementation.
 
 ## SLC-004 — Normalized traceability snapshot
 
-Status: completed; awaiting supervising acceptance
+Status: completed
 Slice ID: `SLC-004`
 
 ### Goal
@@ -2075,7 +2076,7 @@ SLC-005 is complete when:
 
 ## SLC-006 — Application workflow and read-only findings UI
 
-Status: completed; awaiting supervising acceptance
+Status: completed; supervising architect accepted
 
 ### Goal
 
@@ -2254,8 +2255,247 @@ dependencies, browser smoke, boundary/scope scans and diff hygiene. A new fresh
 independent Reviewer approved with no actionable finding. Final traceability
 leaves CurrentIndex on SLC-006 and SLC-007 planned.
 
-## SLC-007 — Tier integration and acceptance
+## SLC-007 — Tier 1 integration, acceptance and handoff
 
-Status: planned
+Status: blocked; supervising requirement/architecture direction required
+Slice ID: SLC-007
 
-Goal: close fixture coverage, rendered/accessibility checks, SharedUI reuse review, documentation, full independent review and Tier 1 verification.
+### Goal
+
+Verify Tier 1 as one integrated product increment, close documentation and
+traceability gaps, test representative clean and broken fixture workflows, and
+produce the final Sprint/Tier acceptance evidence.
+
+This Slice is primarily integration, hardening and evidence. It must not add
+new product capabilities unless a defect prevents an accepted Tier 1
+requirement from working.
+
+### Why now
+
+The complete Tier 1 path exists:
+
+    ProjectSource
+    → discovery
+    → parsing
+    → normalization
+    → validation
+    → application lifecycle
+    → SharedUI presentation
+
+Before the Sprint can close, this path must be verified as one coherent product
+rather than only as individually approved Slices.
+
+### Requirements and references
+
+SLC-007 verifies the complete Tier 1 acceptance set without reclassifying
+Tier 2 or Future requirements as complete:
+
+- functional: REQ-F-001 through REQ-F-006;
+- data/parsing: REQ-D-001 through REQ-D-006;
+- validation: REQ-V-001 through REQ-V-008;
+- provenance: REQ-P-001 through REQ-P-004;
+- UI: REQ-UI-001 through REQ-UI-004;
+- verification: REQ-T-001 through REQ-T-005;
+- security/privacy: REQ-S-001 through REQ-S-003;
+- compatibility: REQ-C-001 through REQ-C-003;
+- maintainability: REQ-M-001 through REQ-M-005; and
+- non-functional: REQ-NF-001 through REQ-NF-005.
+
+Authoritative references are STU-001 and DEC-STU-001 through DEC-STU-014;
+ARC-COMP-001 through ARC-COMP-009 and ARC-COMP-011; ADR-001 through ADR-008;
+DES-001 sections 1 through 14; IMP-001; and VER-PLAN-001.
+
+At minimum, final acceptance must confirm bundled fixture loading, core
+discovery, strict YAML and NDJSON parsing, partial-failure preservation, the
+normalized snapshot, provenance preservation, deterministic rules/findings,
+read-only behavior, SharedUI presentation, loading/ready/empty/failed states,
+diagnostics/findings separation, accessible findings/provenance, compatibility
+reporting, no analyzed-code execution, no project mutation, a static Vite
+build and clean-install reproducibility.
+
+### Authorized scope
+
+- integration defects that prevent Tier 1 acceptance;
+- missing acceptance tests;
+- deterministic fixture coverage;
+- documentation corrections;
+- accessibility corrections;
+- traceability consistency;
+- final SLC-007 and Tier 1 verification;
+- final independent SLC and Tier review; and
+- Sprint/Iteration closure preparation.
+
+### Explicitly unauthorized scope
+
+Do not implement File System Access API, local directory selection, a Node
+service, Electron/Tauri, Markdown parsing or ID extraction, graph
+visualization, report export, CLI/CI, stale-work policy, new rules beyond
+SDP001-SDP008, repair/write-back, broad UI redesign, SharedUI package changes or
+any Tier 2 work.
+
+### Required integration fixtures
+
+Maintain or add small deterministic inputs representing:
+
+1. a clean supported project;
+2. a missing core source;
+3. malformed CurrentIndex or Relations YAML;
+4. a malformed Ledger line with valid neighboring records;
+5. a duplicate entity definition;
+6. a dangling relation;
+7. unresolved active work;
+8. contradictory active hierarchy;
+9. a completed Slice without passed verification; and
+10. partial or unknown compatibility.
+
+Fixtures may be in memory or repository fixture directories. Keep inputs
+separate from expected results where practical and do not duplicate the live
+repository.
+
+### Required end-to-end acceptance behavior
+
+The clean supported fixture must discover all core files, parse without
+diagnostics, normalize deterministically, produce no Tier 1 findings, render
+supported compatibility and declared active work, and show honest
+no-diagnostics/no-findings states.
+
+At least one deterministic broken fixture must traverse the real complete
+application pipeline and render compatibility or input diagnostics, one or
+more validation findings, affected IDs, recommendation and complete source
+provenance without crashing or leaving a stale prior result. UI tests must not
+hardcode fake findings.
+
+### Final acceptance tests
+
+Add or consolidate permanent tests proving:
+
+1. the complete clean fixture pipeline;
+2. the complete broken fixture pipeline;
+3. repeated analysis is deterministic;
+4. one source failure does not erase usable neighboring evidence;
+5. findings preserve canonical ordering through the UI;
+6. fingerprints remain stable through the application boundary;
+7. provenance survives parser → snapshot → finding → rendered detail;
+8. switching source clears prior finding selection and stale UI state;
+9. failed analysis clears the prior successful result;
+10. repeated Analyze action does not create duplicate state;
+11. fixture inputs and analysis results are not mutated;
+12. exactly one stylesheet import remains;
+13. React and SharedUI remain absent below the UI boundary;
+14. parsing, normalization and validation logic remain outside React;
+15. filesystem, graph, report and write-back behavior remain absent; and
+16. the production build is static and reproducible.
+
+### Documentation
+
+Inspect and correct README.md, AGENTS-project.md, Handoff.md,
+implementationNotes.md and any stale command/behavior description. README must
+state the actual completed Tier 1 capabilities, the fixture-only limitation,
+install/test/typecheck/build commands, the SharedUI tarball dependency, no
+local-folder access, no repository mutation, no Markdown coverage, and no
+graph/report/repair features. Planned Tier 2 behavior must not be described as
+implemented.
+
+### SLC-007 verification
+
+Create VER-SLC-007 only after real checks. Run and record:
+
+- npm ci;
+- npm run typecheck;
+- npm test;
+- npm run build;
+- npm ls SharedUI yaml --depth=0; and
+- git diff --check.
+
+Run lint only if configured. Also record rendered clean and broken browser
+smokes, keyboard navigation, screen/state labels, stale-result clearing after
+failure/source switch, compatibility states, provenance detail, deterministic
+repeat analysis, full boundary scans, append-only Ledger validation,
+CurrentIndex/Relations/verification/review cross-reference validation, and an
+isolated clean install using repository-owned files.
+
+### Tier 1 verification record
+
+After every SLC-007 gate passes, create VER-TIER-001. It must summarize actual
+evidence across SLC-001 through SLC-007 rather than merely linking prior
+records. It must state the accepted commit baseline, commands rerun, integrated
+fixture workflows, known limitations, Tier 1 requirement coverage,
+security/read-only checks, deterministic behavior and final result. It must not
+claim future requirements.
+
+### Independent review
+
+After SLC-007 implementation and Master verification, use a fresh independent
+Reviewer. The Reviewer must inspect every SLC-007 change, the integrated
+application, prior review dispositions, complete Tier 1 requirement coverage,
+clean and broken workflows, provenance, deterministic output, accessibility,
+read-only/security boundaries, documentation truthfulness, traceability and
+the exact verification evidence.
+
+Create REV-SLC-007 and, after the full Tier review, REV-TIER-001 only from real
+fresh review. If changes are required, preserve that disposition, delegate a
+bounded correction Worker, rerun applicable verification and use a fresh
+re-review before closure.
+
+### Traceability and closure
+
+Only after passed verification and approved review:
+
+- mark SLC-007 completed and relate it to VER-SLC-007 and REV-SLC-007;
+- relate TIER-001 to VER-TIER-001 and REV-TIER-001;
+- append immutable verification, review and completion Ledger events;
+- mark ITR-001 and SPR-001 completed in Relations and Sprint documentation;
+- set project/Tier status accurately; and
+- retain all prior Ledger lines unchanged.
+
+CurrentIndex must remain pointed to SLC-007 after completion while supervising
+architect acceptance is pending; do not remove active IDs or invent nulls.
+
+### Completion signal
+
+SLC-007 and Tier 1 are complete only when the clean fixture succeeds, broken
+evidence renders truthfully, determinism and end-to-end provenance are proven,
+loading/failure/empty/compatibility states and accessibility pass,
+documentation matches reality, clean install/typecheck/tests/build pass,
+VER-SLC-007 and VER-TIER-001 exist, fresh SLC and Tier reviews approve,
+Sprint/Iteration closure and append-only traceability are coherent, CurrentIndex
+still points to SLC-007, and no Tier 2 work exists.
+
+### Discoveries policy and stop condition
+
+Fix only defects that prevent Tier 1 acceptance. Record and defer local-folder
+acquisition, historical variants, Markdown coverage, stale-work policy,
+graph/report, CLI/CI, repair/write-back and SharedUI package improvements. If
+Tier 1 cannot be accepted without an architecture or requirement change, stop
+and report the exact gap.
+
+Stop after SLC-007/Tier 1 verification, independent approval, closure records
+and handoff. Do not begin a new Slice, Sprint or Tier.
+
+### Blocking discovery — 2026-07-13
+
+The Master stopped before product implementation because the complete Tier 1
+acceptance set cannot be satisfied under the current authoritative documents:
+
+1. REQ-D-003 and STU-001 require Markdown structural-heading and explicit
+   stable-ID extraction as part of the Tier 1 supported profile. The current
+   product only classifies Markdown paths and analyzes CurrentIndex, Relations
+   and Ledger content. This contract explicitly forbids Markdown parsing or ID
+   extraction. REQ-V-002 and REQ-C-001 are consequently only partial because
+   duplicate-ID and supported-profile analysis cannot include the required
+   Markdown evidence.
+2. DEC-STU-011 says qualifying verification must identify its subject and
+   contain a command/check description and outcome. The accepted SDP007
+   implementation qualifies a related verification entity solely from kind and
+   outcome: passed in structured Relations data. Verification Markdown is not
+   read, so the Study definition cannot be evaluated.
+
+Supervising direction must either narrow the Tier 1 requirements/profile and
+verification qualification semantics to the structured three-file boundary,
+or revise the SLC-007 authorization and architecture to permit bounded Markdown
+and verification-record extraction. The Master did not choose between those
+product/requirements directions.
+
+CurrentIndex remains on SLC-007. SLC-001 through SLC-006 remain completed. No
+fixture, test, UI, README, product-code, verification/review record or Tier 2
+change was made after this stop condition was identified.

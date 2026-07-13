@@ -1327,6 +1327,48 @@ traceability scans. No actionable finding remained.
 
 Relations now records SLC-006 completed with passed `VER-SLC-006` and approved
 `REV-SLC-006`. Immutable events 052-053 record final approval and completion
-after the reopened correction. CurrentIndex intentionally remains on SLC-006
-for supervising acceptance. SLC-007 remains planned and untouched. No commit,
-push or pull request occurred.
+after the reopened correction. CurrentIndex intentionally remained on SLC-006
+for supervising acceptance. SLC-007 remained planned and untouched at that
+checkpoint. No commit, push or pull request occurred.
+
+## SLC-007 activation — 2026-07-13
+
+Status: active; integration, acceptance and handoff work authorized
+
+The supervising architect accepted the completed SLC-006 boundary at committed
+state `d08e097f2813231ca29c13293459697aace2e706`. The Master re-read the complete
+accepted planning set, current product/test tree, passed `VER-SLC-006`, final
+approved `REV-SLC-006` and the 53-line immutable Ledger before transition.
+
+Before delegating product work, the Master expanded the complete SLC-007
+contract in `ScrumIterations.md`, advanced CurrentIndex to SLC-007, expanded and
+activated the SLC-007 relation, and appended immutable events 054-055 for
+supervising acceptance and activation. SLC-001 through SLC-006 remain
+completed. No Tier 2 work, product-code change, commit, push or pull request was
+performed during this transition.
+
+## SLC-007 Master stop-condition discovery — 2026-07-13
+
+Status: blocked before product implementation; supervising direction required
+
+Two independent read-only acceptance audits and the Master's direct source
+inspection found that Tier 1 cannot be accepted under the current governing
+documents. REQ-D-003/STU-001 require Markdown structural-heading and explicit
+stable-ID extraction, while SLC-007 explicitly forbids Markdown parsing or ID
+extraction and the implementation reads only the three structured core files.
+This also leaves REQ-V-002 and REQ-C-001 partial for Markdown duplicate/profile
+coverage.
+
+DEC-STU-011 additionally requires a qualifying verification record to identify
+its subject and contain a command/check description and outcome. Current SDP007
+accepts a related verification entity from structured kind plus outcome:
+passed, because verification Markdown is not read. The Master cannot silently
+select the narrower semantics or expand the authorized parser boundary.
+
+The Worker was interrupted and removed its one incomplete untracked fixture
+source before any product change remained. No README, AGENTS-project, source,
+test, verification or review record was changed; no command suite or browser
+smoke was claimed; and no SLC/Tier/Sprint/Iteration completion was recorded.
+Relations marks SLC-007 blocked, CurrentIndex stays on SLC-007 and immutable
+event 056 preserves the stop reason. SLC-001 through SLC-006 remain completed;
+no Tier 2 work began.
