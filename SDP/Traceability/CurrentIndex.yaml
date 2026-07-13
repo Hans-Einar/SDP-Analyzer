@@ -8,7 +8,7 @@ active:
   sprint: SPR-001
   refactor: null
   iteration: ITR-001
-  slice: SLC-005
+  slice: SLC-006
 
 planning:
   mandate: SDP/01--Mandate/mandate.md

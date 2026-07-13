@@ -1,9 +1,61 @@
-# Handoff — SLC-005
+# Handoff — SLC-006
 
-Status: SLC-005 completed; awaiting supervising acceptance
-Active Slice: `SLC-005`
+Status: SLC-006 completed; awaiting supervising acceptance
+Active Slice: `SLC-006`
 Sprint: `SPR-001`
 Iteration: `ITR-001`
+
+## SLC-006 activation history
+
+The supervising architect accepted completed SLC-005 at committed state
+`f27541559a3b5103fbafa97fca4d9830d9b0f5ff`. The Master confirmed passing
+`VER-SLC-005`, final approved `REV-SLC-005`, completed SLC-005 relations and
+immutable completion event 041. Before SLC-006 implementation, the complete
+application-workflow/read-only-findings-UI contract was activated:
+
+- `CurrentIndex.yaml` now points to `SPR-001 / ITR-001 / SLC-006`;
+- `Relations.yaml` keeps SLC-001 through SLC-005 completed, marks SLC-006
+  active with its requirement/architecture/Study/design links and keeps
+  SLC-007 planned;
+- immutable Ledger events 042-043 record supervising acceptance of SLC-005 and
+  activation of SLC-006;
+- the historical 41-line Ledger prefix is unchanged.
+
+A bounded Worker implementation and Master correction were present at the
+initial review checkpoint and were recorded in `implementationNotes.md`.
+`VER-SLC-006` and Ledger event 044 recorded the then-current evidence. The
+first fresh `REV-SLC-006` pass required keyboard-evidence and handoff
+corrections; those historical findings were later resolved.
+
+## Superseded SLC-006 completion checkpoint
+
+Master verification passed and the second fresh independent review approved
+SLC-006 after the stale-handoff and keyboard-evidence findings were corrected.
+Relations now marks SLC-006 completed and links passed `VER-SLC-006` and
+approved `REV-SLC-006`; Ledger events 046-047 record approval and completion.
+CurrentIndex intentionally remains on SLC-006 pending supervising acceptance.
+SLC-007 remains planned and has not been activated. No commit, push or pull
+request was made.
+
+## Post-completion rework and final handoff
+
+A later third fresh independent audit found selected source was not owned with
+lifecycle/result by the application controller, SharedUI config retained an
+inert duplicate source state, the page lacked a clearly labeled fixture source
+panel, and permanent UI evidence did not cover all required summary,
+declaration, compatibility and provenance fields. It also found this handoff
+and Ledger review history insufficiently reconstructable.
+
+SLC-006 was reopened. A fresh bounded Worker corrected those findings and
+Master re-verification passed clean install, focused 15 tests, all 135 tests,
+typecheck, build, exact dependencies, rendered browser smoke, boundary/scope
+scans and diff hygiene. `VER-SLC-006` contains the correction evidence. A new
+fresh independent Reviewer approved the corrected tree with no actionable
+finding. Relations now records SLC-006 completed with passed verification and
+approved review; immutable events 052-053 record final approval and completion.
+CurrentIndex intentionally remains on SLC-006 pending supervising acceptance.
+SLC-007 remains planned and is not authorized. No commit, push or pull request
+has been made.
 
 ## Completion handoff
 

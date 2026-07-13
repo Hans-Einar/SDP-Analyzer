@@ -101,10 +101,27 @@ slices:
     verification_plan: VER-PLAN-001
     verification: [VER-SLC-005]
     review: [REV-SLC-005]
-  SLC-006: {sprint: SPR-001, iteration: ITR-001, status: planned}
+  SLC-006:
+    path: SDP/Sprints/SPR-001/ScrumIterations.md
+    sprint: SPR-001
+    iteration: ITR-001
+    status: completed
+    requirements: [REQ-F-003, REQ-F-004, REQ-F-005, REQ-UI-001, REQ-UI-002, REQ-UI-003, REQ-UI-004, REQ-T-004, REQ-NF-003, REQ-NF-004, REQ-F-001, REQ-F-006, REQ-P-003, REQ-P-004, REQ-T-003, REQ-T-005, REQ-C-001, REQ-C-002, REQ-C-003, REQ-NF-002, REQ-NF-005]
+    architecture: [ARC-COMP-006, ARC-COMP-007, ARC-COMP-008, ARC-COMP-009, ARC-COMP-011, ADR-001, ADR-002, ADR-003, ADR-007, ADR-008]
+    study_decisions: [DEC-STU-008, DEC-STU-012, DEC-STU-013]
+    design: [DES-001]
+    design_sections: [5, 8, 10, 11, 12, 13, 14]
+    verification_plan: VER-PLAN-001
+    verification: [VER-SLC-006]
+    review: [REV-SLC-006]
   SLC-007: {sprint: SPR-001, iteration: ITR-001, status: planned}
 
 reviews:
+  REV-SLC-006:
+    path: SDP/CodeReview/REV-SLC-006.md
+    slice: SLC-006
+    verification: [VER-SLC-006]
+    disposition: approved
   REV-SLC-005:
     path: SDP/CodeReview/REV-SLC-005.md
     slice: SLC-005
@@ -132,6 +149,11 @@ reviews:
     disposition: approved
 
 verification:
+  VER-SLC-006:
+    path: SDP/Verification/VER-SLC-006.md
+    slice: SLC-006
+    requirements: [REQ-F-003, REQ-F-004, REQ-F-005, REQ-UI-001, REQ-UI-002, REQ-UI-003, REQ-UI-004, REQ-T-004, REQ-NF-003, REQ-NF-004]
+    outcome: passed
   VER-SLC-005:
     path: SDP/Verification/VER-SLC-005.md
     slice: SLC-005

@@ -18,9 +18,9 @@ Authorized by `STU-001`, `REQSET-001`, `ARC-001`, `DAN-001`, `DES-001` and `IMP-
 Status: active  
 Iteration ID: `ITR-001`
 
-The Iteration executes the ordered Slice contracts below. `SLC-001`,
-`SLC-002` and `SLC-003` are completed and accepted. `SLC-004` is completed,
-verified and independently approved, and awaits supervising acceptance.
+The Iteration executes the ordered Slice contracts below. `SLC-001` through
+`SLC-005` are completed and accepted. `SLC-006` is completed and awaits
+supervising acceptance; `SLC-007` remains planned.
 
 ---
 
@@ -2073,11 +2073,186 @@ SLC-005 is complete when:
 * `CurrentIndex.yaml` remains on SLC-005;
 * SLC-006 remains planned and untouched.
 
-## SLC-006 — Application workflow and UI
+## SLC-006 — Application workflow and read-only findings UI
 
-Status: planned
+Status: completed; awaiting supervising acceptance
 
-Goal: orchestrate fixture analysis and display summary, active work, diagnostics, findings and provenance through SharedUI, using narrowly domain-specific registered components only where baseline contracts are insufficient.
+### Goal
+
+Connect the complete `discover → parse → normalize → validate` pipeline to the
+React/SharedUI application and present a truthful, accessible, read-only project
+summary, active-work declaration, diagnostics summary, findings list and
+finding-detail provenance view. React displays domain results without
+reimplementing discovery, parsing, normalization or validation.
+
+### Requirements and references
+
+Primary requirements: `REQ-F-003`, `REQ-F-004`, `REQ-F-005`, `REQ-UI-001`,
+`REQ-UI-002`, `REQ-UI-003`, `REQ-UI-004`, `REQ-T-004`, `REQ-NF-003`,
+`REQ-NF-004`.
+
+Partial/foundation requirements: `REQ-F-001`, `REQ-F-006`, `REQ-P-003`,
+`REQ-P-004`, `REQ-T-003`, `REQ-T-005`, `REQ-C-001`, `REQ-C-002`, `REQ-C-003`,
+`REQ-NF-002`, `REQ-NF-005`. This Slice does not claim local-directory
+acquisition or broader navigation requirements.
+
+Architecture/design: `ARC-COMP-006`, `ARC-COMP-007`, `ARC-COMP-008`,
+`ARC-COMP-009`, `ARC-COMP-011`, `ADR-001`, `ADR-002`, `ADR-003`, `ADR-007`,
+`ADR-008`, `DEC-STU-008`, `DEC-STU-012`, `DEC-STU-013`, and `DES-001` sections
+5, 8, 10, 11, 12, 13 and 14.
+
+### Required implementation
+
+1. One application-level owner controls selected fixture source, analysis
+   lifecycle and the single current result. Lifecycle states are explicit:
+   idle if used, loading with source name, ready with `ProjectAnalysis`, and
+   failed with a safe message. It invokes existing `analyzeProject`, never
+   rebuilds pipeline stages in React, replaces stale success on failure and
+   does not rerun analysis for finding selection/filter changes.
+2. The page contains product header, fixture source panel, compatibility and
+   parse-status summary, declared active-work summary, diagnostics summary,
+   findings list, finding detail/provenance, and clear empty/loading/
+   unsupported/failed states. No graph is added.
+3. Continue `DashboardRenderer`, `defineDashboardConfig`,
+   `baselineComponentRegistry`, explicit validators and `statePolicy`, stable
+   trusted component keys, and exactly one `SharedUI/styles.css` import. Reuse
+   `TopNav`, `PageHeader`, `Section`, `Badge`, `AlertBanner`, `EmptyState`,
+   `CardSkeleton`, `TableSkeleton`, `DataTable`, `DetailPanel`, and
+   `ErrorFallback` when semantically suitable. Do not recreate generic SharedUI
+   primitives.
+4. Local registered components are restricted to SDP-Analyzer-specific content
+   such as `SourceSelector`, `ProjectSummary`, `ActiveWorkSummary`,
+   `DiagnosticsSummary`, `FindingsList`, `FindingDetail`, and `ProvenanceList`.
+   They consume typed view/domain data and do not parse YAML/NDJSON, normalize,
+   validate, infer correctness, or form a separate design system.
+5. Project summary truthfully shows source name, discovered file count, profile
+   ID/support, entity/relation/Ledger counts, parser/normalization diagnostic
+   count, and finding count. No health score or unsupported “healthy” claim.
+6. Active summary labels Sprint, Refactor, Iteration, and Slice as declared
+   values. Missing and explicit null remain distinguishable where practical.
+   SDP005/SDP006 findings remain separate; the UI does not recompute validity.
+7. Discovery/parser/normalization diagnostics remain separate from validation
+   findings and expose severity, stable code, message, source path and available
+   line/column/pointer. No-diagnostics copy is honest.
+8. Findings retain canonical domain order by default and expose severity, rule
+   ID, title, affected IDs, concise explanation and keyboard-selectable detail.
+   Optional severity/rule filters do not mutate domain arrays.
+9. Finding detail exposes rule ID, severity, title, full explanation, optional
+   recommendation, affected IDs, fingerprint and every canonical SourceRef,
+   including available source ID, path, kind, line/column ranges and pointer.
+   No raw unsafe HTML, callbacks or vague hidden-provenance label.
+10. Severity uses canonical semantics, explicit text and non-color cues.
+    Controls have accessible names; selected findings are clearly indicated;
+    lists/tables have meaningful labels; loading/errors are announced;
+    provenance remains selectable; focus is not trapped.
+11. Distinct honest states exist for no diagnostics, no findings, no active
+    declaration, unknown/unsupported compatibility, analysis failure, loading,
+    and no selected finding. “No findings” does not claim total correctness.
+12. Failure renders through explicit failed state or `ErrorFallback`, hides
+    stack traces and never leaves stale success current. Diagnostics returned
+    in partial successful results remain visible.
+13. Tier 1 stays fixture-only and clearly says local-folder selection is not
+    available. No File System Access API, drag/drop, path input or Node
+    filesystem. The default fixture remains clean/supported; deterministic
+    injected/broken test inputs demonstrate findings without hardcoded fakes.
+14. Presentation view models may format labels, counts, ranges, rows and source
+    references but cannot rerun validation, reinterpret semantics, create
+    findings, infer entity validity or mutate domain objects.
+15. UI-local state may own selected fingerprint, severity/rule filters and
+    expansion. Do not add Redux/Zustand, routing, URL sync or persistence.
+
+### Expected modules
+
+Responsibilities may be organized as application lifecycle/controller/view
+model modules and `src/ui/App.tsx`, `dashboardConfig.ts` plus domain-specific
+components. Exact filenames may vary; responsibility boundaries may not.
+
+### Invariants and non-goals
+
+* No parser, normalizer or validator logic in React; no React/SharedUI below UI.
+* No generic SharedUI duplication, local token system, fake findings, health
+  score, local filesystem acquisition, graph, report/export, repair/write-back,
+  project mutation, analyzed-code execution, Markdown extraction, CLI/CI,
+  stale-work policy, routing, persistent filters or SharedUI package changes.
+* One authoritative immutable analysis result; canonical finding order remains
+  default; diagnostics and findings stay separate.
+* SLC-001 through SLC-005 remain functional; SLC-007 stays untouched.
+
+### Required tests
+
+Cover lifecycle/loading/success/failure/stale-result behavior and lack of
+reanalysis for local UI changes; all truthful summary counts and no health
+score; declared values with null/missing behavior; diagnostics content,
+location, separation and empty state; canonical finding order, severity/rule/
+affected IDs, keyboard detail selection, explanation/recommendation/fingerprint
+and every provenance source; honest no-findings and immutable filters; partial,
+unknown and unsupported compatibility; distinct loading/error; SharedUI shell,
+registry and exact-one CSS import; accessible labels/non-color severity; import
+boundaries and prohibited-scope scans. Existing 121 tests remain passing.
+
+### Verification and independent review
+
+Run and record `npm ci`, `npm run typecheck`, `npm test`, `npm run build`,
+`npm ls SharedUI yaml --depth=0`, and `git diff --check`; lint only if configured.
+Also perform rendered browser smoke, keyboard selection, non-color severity,
+loading/ready/failed and stale-result checks, exact-one stylesheet scan,
+boundary/core-logic/prohibited-scope scans and confirmation of no SLC-007 work.
+Create `VER-SLC-006` only from real evidence.
+
+A fresh independent Reviewer inspects the full contract, lifecycle ownership,
+SharedUI reuse/config, diagnostics/findings separation, truthful declaration
+labels, finding order and provenance, failure/stale-result behavior,
+accessibility, boundaries, prohibited scope, verification and traceability.
+Create `REV-SLC-006` only after review. Corrections require a bounded Worker,
+applicable re-verification and fresh re-review.
+
+### Completion signal and discoveries policy
+
+Complete only when the bundled fixture traverses the full pipeline; lifecycle,
+summaries, declared work, diagnostics, findings and complete provenance render
+truthfully; all states and accessibility checks pass; SharedUI is reused; React
+makes no domain decisions; verification passes; fresh review approves; and
+traceability records evidence while CurrentIndex remains SLC-006 and SLC-007
+remains planned. Record rather than implement future SharedUI enhancements,
+local-folder acquisition, Markdown coverage, graphs, export, stale policy,
+repair/write-back or CLI/CI. Stop at the SLC-006 boundary.
+
+### Completion record — 2026-07-12
+
+The complete bundled fixture now runs through discover, parse, normalize and
+validate under one presentation-neutral lifecycle controller. SharedUI renders
+truthful summary, declared work, separate diagnostics/findings and full finding
+detail/provenance with explicit loading, failure, compatibility and empty
+states. Accessibility coverage includes non-color severity and real Enter/Space
+activation of native finding buttons.
+
+Master verification passed clean install, typecheck, 17 files/132 tests, build,
+dependency inspection, diff hygiene, rendered browser smoke and boundary/
+prohibited-scope scans. The first independent review required a current Handoff
+and non-synthetic keyboard evidence. Both were corrected, re-verified and
+approved by a second fresh independent Reviewer with no remaining actionable
+finding. `VER-SLC-006`, `REV-SLC-006` and immutable events 044-047 record the
+evidence, correction, approval and completion. CurrentIndex remains on SLC-006.
+SLC-007 remains planned and untouched.
+
+### Post-completion audit rework — 2026-07-12
+
+A later fresh independent audit found that the prematurely completed record did
+not yet satisfy the selected-source ownership/source-panel contract, several
+explicit UI evidence assertions, or fully reconstructable review handoff and
+Ledger history. SLC-006 is reopened for bounded correction and re-verification.
+CurrentIndex remains on SLC-006; SLC-007 remains planned and untouched.
+
+### Final re-completion record — 2026-07-12
+
+The bounded correction placed selected source, lifecycle and the single result
+under one application controller; removed the inert SharedUI source mirror;
+added the visible fixture source panel; and completed permanent assertions for
+summary, declarations, compatibility and full provenance. Master verification
+passed clean install, 15 focused and 135 full tests, typecheck, build, exact
+dependencies, browser smoke, boundary/scope scans and diff hygiene. A new fresh
+independent Reviewer approved with no actionable finding. Final traceability
+leaves CurrentIndex on SLC-006 and SLC-007 planned.
 
 ## SLC-007 — Tier integration and acceptance
 

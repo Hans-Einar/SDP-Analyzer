@@ -1028,3 +1028,305 @@ now records SLC-005 completed, passed `VER-SLC-005` and approved
 `REV-SLC-005`; immutable events 040-041 record final approval and completion.
 CurrentIndex intentionally remains on SLC-005 for supervising acceptance.
 SLC-006 remains planned and untouched. No commit, push or pull request occurred.
+
+## SLC-006 activation — 2026-07-12
+
+Status: active; implementation authorized
+
+The supervising architect accepted committed SLC-005 state
+`f27541559a3b5103fbafa97fca4d9830d9b0f5ff`. The Master confirmed passed
+`VER-SLC-005`, approved `REV-SLC-005`, completed SLC-005 traceability and
+immutable completion event 041 before transition. The full SLC-006 contract is
+recorded in Scrum; CurrentIndex points to SLC-006; its relation is active with
+explicit requirement, architecture, Study and design links; and immutable
+events 042-043 record supervising acceptance and Slice activation.
+
+SLC-001 through SLC-005 remain completed. SLC-007 remains planned and
+untouched. Product implementation is bounded to SLC-006.
+
+## SLC-006 Worker implementation — application workflow and read-only findings UI
+
+Date: 2026-07-12
+
+Role: fresh bounded Worker
+
+Scope: `SPR-001 / ITR-001 / SLC-006` only
+
+Implemented one React application lifecycle owner for the selected bundled
+fixture and the authoritative `ProjectAnalysis`. It invokes the existing
+`analyzeProject` orchestration with an explicit deterministic context, exposes
+loading/ready/failed states, clears stale success when a new run begins or
+fails, and leaves finding selection and filters local to presentation.
+
+Replaced the earlier discovery smoke surface with a complete registered
+`AnalyzerWorkflow` custom component inside the existing SharedUI dashboard
+shell. The UI reuses SharedUI `TopNav`, `PageHeader`, `Section`, `Badge`,
+`AlertBanner`, `EmptyState`, `CardSkeleton`, `TableSkeleton`, `DataTable`, and
+`DetailPanel`. It presents fixture-only/read-only scope, compatibility and
+parse status, truthful counts, declared Sprint/Refactor/Iteration/Slice values,
+separate diagnostics and validation findings, immutable severity/rule filters,
+keyboard-native finding selection, explanation, recommendation, affected IDs,
+fingerprint, and every canonical provenance source. No parser, normalization,
+validation, finding creation, health score, filesystem acquisition, graph,
+mutation, routing, persistence, or SLC-007 behavior was added.
+
+Automated evidence after implementation:
+
+- `npm run typecheck`: passed.
+- `npm test`: passed, 16 files and 123 tests.
+- `npm run build`: passed; Vite emitted only the pre-existing chunk-size advisory.
+- `npm ls SharedUI yaml --depth=0`: passed with `SharedUI@0.1.0` and `yaml@2.9.0`.
+- `git diff --check`: passed; Git emitted only line-ending conversion warnings.
+- stylesheet scan found exactly one `SharedUI/styles.css` import, in `src/main.tsx`.
+- boundary scan found no React, React DOM, or SharedUI imports in `src/core`,
+  `src/application`, or `src/adapters`.
+
+The rendered jsdom workflow tests cover loading, clean success, safe failure,
+stale-result removal, truthful summaries and explicit-null display, honest
+empty states, finding canonical order, text severity, affected IDs, selection,
+full detail and multi-source provenance, immutable filtering, and confirmation
+that UI-only changes do not rerun analysis. No commit, push, PR, traceability
+ledger/index edit, verification record, or review record was made by this Worker.
+
+## SLC-006 bounded correction after Master audit
+
+Date: 2026-07-12
+
+Role: fresh bounded Worker
+
+Scope: `SPR-001 / ITR-001 / SLC-006` correction only
+
+Moved analysis lifecycle ownership out of React into the presentation-neutral
+`src/application/analysisController.ts` contract. The controller invokes
+`analyzeProject`, owns idle/loading/ready/failed state and one current result,
+clears success on every new loading state and failure, publishes state to UI
+subscribers, and uses monotonically increasing run identity so late success or
+failure from a superseded analysis cannot replace the newest result. React now
+subscribes to and invokes that application controller; `src/application`
+imports neither React nor SharedUI.
+
+Corrected diagnostic presentation to use `snapshot.diagnostics` once because
+the normalized snapshot already composes discovery, parser and normalization
+diagnostics, then append only distinct validation-engine diagnostics. Findings
+remain a separate UI section. Changed the summary wording from the overly
+narrow `Parsed ...` status to `Loaded ... diagnostics`, matching the composed
+input diagnostic set.
+
+Added permanent focused controller and UI tests for lifecycle transitions,
+stale-result removal, late success and late failure supersession, subscription,
+no reanalysis during UI-only filtering/selection, unknown and unsupported
+compatibility, missing active declaration, diagnostic code/severity/path/
+line/column/pointer and deduplication, findings separation, and native Enter/
+Space button activation sequences for finding detail.
+
+Correction verification evidence:
+
+- Initial `npm ci` attempt was blocked by Windows `EPERM` while unlinking the
+  loaded native `lightningcss.win32-x64-msvc.node`; because npm had partially
+  removed the dependency tree, `npm install --ignore-scripts=false` restored
+  the lockfile-defined dependencies without changing `package.json` or
+  `package-lock.json`. It completed with only cleanup warnings for locked native
+  temporary directories and reported zero vulnerabilities.
+- `npm run typecheck`: passed.
+- `npm test`: passed, 17 files and 132 tests.
+- `npm run build`: passed; Vite emitted only its chunk-size advisory.
+- `npm ls SharedUI yaml --depth=0`: passed with `SharedUI@0.1.0` and
+  `yaml@2.9.0`.
+- `git diff --check`: passed; Git emitted only line-ending conversion warnings.
+- stylesheet scan found exactly one `SharedUI/styles.css` import in
+  `src/main.tsx`.
+- boundary scan found no React, React DOM or SharedUI imports in `src/core`,
+  `src/application` or `src/adapters` (only existing test regex text matched a
+  broad first scan).
+- prohibited-scope scan found no File System Access API, health score,
+  repair or write-back implementation in production source.
+
+No VER/REV record, commit, push, PR or SLC-007 work was performed. Existing
+Master traceability edits were preserved.
+
+## SLC-006 Master verification — 2026-07-12
+
+The Master inspected the complete controller/UI/test diff and required a
+bounded correction before verification: lifecycle orchestration moved below
+React into a presentation-neutral controller, duplicate diagnostic presentation
+was removed, and focused compatibility, missing-declaration,
+diagnostic-location, keyboard and superseded-run coverage was added.
+
+After stopping the development server that temporarily locked a native npm
+binary, clean `npm ci` passed (270 packages, zero vulnerabilities). Typecheck
+passed; the full suite passed with 17 files and 132 tests; build passed for
+2,067 modules with only the existing chunk advisory; dependency inspection
+retained `SharedUI@0.1.0` and `yaml@2.9.0`; and `git diff --check` passed with
+line-ending warnings only.
+
+A real in-app browser smoke rendered the clean fixture workflow with supported
+compatibility, all summary/declaration labels and honest empty diagnostic/
+finding states. Inspection found one stylesheet, no horizontal overflow and no
+console warning/error. Boundary, prohibited-scope, UI core-logic and
+traceability syntax checks passed. `VER-SLC-006` records the evidence and event
+044 records passed verification. SLC-006 remains active pending fresh review;
+SLC-007 remains planned and untouched.
+
+## SLC-006 bounded keyboard-evidence correction
+
+Date: 2026-07-12
+
+Role: fresh bounded Worker
+
+Scope: `SPR-001 / ITR-001 / SLC-006` review correction only
+
+Corrected the focused finding-control regression to focus the native button and
+use `userEvent.keyboard` for Enter and Space activation. The test now asserts
+the selected state and rendered detail without dispatching an unconditional
+separate click. No production behavior changed. The correction adds the exact
+dev-only test dependency `@testing-library/user-event@14.6.1` to `package.json`
+and `package-lock.json` so the regression models native keyboard behavior.
+
+Correction evidence:
+
+- `npm ci`: passed; 271 packages added, 272 audited, zero vulnerabilities.
+- `npm test -- --run src/ui/App.test.tsx
+  src/application/analysisController.test.ts`: passed; 2 files, 12 tests.
+- `npm run typecheck`: passed.
+- `npm test`: passed; 17 files, 132 tests.
+- `npm run build`: passed; 2,067 modules, with only the non-failing chunk-size
+  advisory.
+- `npm ls SharedUI yaml @testing-library/user-event --depth=0`: passed with
+  `SharedUI@0.1.0`, `yaml@2.9.0` and `@testing-library/user-event@14.6.1`.
+- `git diff --check`: passed with line-ending conversion warnings only.
+
+No Handoff, CurrentIndex, Relations, Ledger, VER or REV edit; commit, push, PR;
+or SLC-007 work was performed by this Worker.
+
+## SLC-006 post-review Master verification — 2026-07-12
+
+The Master updated the stale Handoff and inspected the keyboard correction. The
+first post-correction `npm ci` completed but Vitest startup then failed on a
+transient missing `convert-source-map/index.js` file. A second lockfile-clean
+install restored the tree. The full sequence then passed: typecheck, 17 files/
+132 tests, 2,067-module build, exact dependency listing and diff check. The
+keyboard regression now uses user-event Enter and Space on the focused native
+button and does not inject a click. `VER-SLC-006` retains both the transient
+failure and successful rerun; immutable event 045 records updated passing
+evidence. Fresh re-review remains required.
+
+## SLC-006 final independent review and completion — 2026-07-12
+
+The second fresh Reviewer independently reassessed the complete Slice and
+confirmed both original findings resolved: Handoff was current and the
+keyboard regression used real user-event Enter/Space activation without an
+injected click. Focused 2-file/12-test and full 17-file/132-test suites,
+typecheck, build, dependency listing, boundary scans and diff check passed.
+The Reviewer transparently recorded two Windows `npm ci` cleanup failures and
+successful lock-defined dependency restoration; the earlier Master clean
+install evidence remains qualifying.
+
+Relations now records SLC-006 completed with passed `VER-SLC-006` and approved
+`REV-SLC-006`; immutable events 046-047 record approval and completion.
+CurrentIndex intentionally remains on SLC-006 for supervising acceptance.
+SLC-007 remains planned and untouched. No commit, push or pull request occurred.
+
+## SLC-006 post-completion audit reopening — 2026-07-12
+
+A third fresh independent Reviewer found that the completion record still had
+one medium implementation gap and two low evidence/traceability gaps. Selected
+source was not owned with lifecycle/result by the application controller, the
+SharedUI config retained an inert duplicate source key, and the page lacked a
+clearly labeled fixture source panel. Required summary, declaration,
+compatibility and full-provenance assertions were incomplete. Handoff and the
+append-only review transition also needed clarification.
+
+SLC-006 is reopened for bounded correction. Relations returns SLC-006 to active
+and `REV-SLC-006` to changes required. CurrentIndex remains on SLC-006;
+SLC-007 remains planned and untouched. Historical verification, approval and
+completion events are not rewritten.
+
+## SLC-006 bounded post-completion audit correction
+
+Date: 2026-07-12
+
+Role: fresh bounded correction Worker
+
+Scope: `SPR-001 / ITR-001 / SLC-006` only
+
+Corrected selected-source ownership so the presentation-neutral application
+controller now holds the selected `ProjectSource` in every idle, loading,
+ready and failed state together with the single current analysis result. The
+controller owns source replacement, invalidates superseded runs, and analyzes
+only its selected source. React initializes, subscribes to and invokes that
+controller; it does not keep a separate authoritative selected-source state.
+The inert `selectedSource` key, validator and policy were removed from the
+SharedUI dashboard config, which now truthfully has no dashboard-owned state.
+
+Added the registered SDP-Analyzer-specific `SourceSelector` surface to the
+schema-authored main region. It composes SharedUI `Section`, `DetailPanel` and
+`AlertBanner` components to identify the selected bundled fixture and source
+ID and to state clearly that local-folder selection/filesystem access is not
+available in Tier 1. Finding provenance now also uses labeled SharedUI detail
+panels for source ID, path, kind, line range, column range and pointer.
+
+Strengthened permanent rendered UI evidence to assert exact discovered-file,
+profile ID/support, entity, relation, Ledger, input-diagnostic and finding
+counts; declared Sprint, Refactor, Iteration and Slice labels; explicit null
+versus missing values; partial, unknown and unsupported compatibility; and
+both complete canonical provenance records including unavailable ranges. The
+existing canonical ordering, diagnostics/findings separation, real user-event
+Enter/Space activation, immutable filtering and no-reanalysis assertions
+remain passing.
+
+Correction evidence:
+
+- focused controller/UI tests passed: 2 files, 15 tests;
+- `npm run typecheck` passed with no diagnostics;
+- full `npm test` passed: 17 files, 135 tests;
+- `npm run build` passed for 2,067 modules with only the existing non-failing
+  chunk-size advisory;
+- `npm ls SharedUI yaml @testing-library/user-event --depth=0` passed with
+  `SharedUI@0.1.0`, `yaml@2.9.0` and
+  `@testing-library/user-event@14.6.1`;
+- the source-only stylesheet scan found exactly one
+  `SharedUI/styles.css` import at `src/main.tsx:3`;
+- boundary, UI parser/normalizer/validator-call, raw-shadcn, local generic
+  primitive/token, prohibited-scope and SLC-007 product scans were clean;
+- `git diff --check` passed with line-ending conversion warnings only.
+
+No dependency, Handoff, CurrentIndex, Relations, Ledger, VER or REV edit;
+commit, stage, push or pull request; or SLC-007 work was performed by this
+Worker. CurrentIndex remains on SLC-006 and the SLC-007 relation remains
+planned.
+
+## SLC-006 post-completion correction Master verification — 2026-07-12
+
+The Master inspected the complete controller, dashboard, workflow and test
+correction. One application lifecycle union now owns selected source and the
+single result; SharedUI config has empty state/statePolicy; the registered
+fixture source panel is visible and truthful; and the expanded permanent tests
+cover the required summary, declaration, compatibility and full provenance
+evidence.
+
+Independent Master commands passed a clean `npm ci` (271 added, 272 audited,
+zero vulnerabilities), focused 2-file/15-test run, strict typecheck, full
+17-file/135-test suite, 2,067-module production build, exact dependency list
+and diff check. Static scans passed for one stylesheet import, framework
+boundaries, UI core-logic exclusion, raw-shadcn exclusion, prohibited scope and
+the SLC-007 stop. Rendered browser smoke confirmed the fixture panel and clean
+analysis with one stylesheet, no overflow and no console warning/error.
+
+`VER-SLC-006` contains exact correction evidence. SLC-006 remains active and
+`REV-SLC-006` remains changes required pending a new fresh review. CurrentIndex
+remains on SLC-006; SLC-007 remains planned and untouched.
+
+## SLC-006 final post-completion re-review and completion — 2026-07-12
+
+A fourth fresh independent Reviewer inspected the corrected controller, empty
+SharedUI state, registered fixture panel, expanded permanent tests, all linked
+planning and the append-only review/reopen history. It independently reproduced
+the focused 2-file/15-test run, typecheck, full 17-file/135-test suite,
+2,067-module build, exact dependency listing, diff check and boundary/scope/
+traceability scans. No actionable finding remained.
+
+Relations now records SLC-006 completed with passed `VER-SLC-006` and approved
+`REV-SLC-006`. Immutable events 052-053 record final approval and completion
+after the reopened correction. CurrentIndex intentionally remains on SLC-006
+for supervising acceptance. SLC-007 remains planned and untouched. No commit,
+push or pull request occurred.
