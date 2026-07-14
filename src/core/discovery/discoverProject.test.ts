@@ -61,7 +61,7 @@ describe("discoverProject", () => {
       id: CURRENT_SDP_PROFILE_ID,
       support: "supported",
     });
-    expect(discovery.files).toHaveLength(14);
+    expect(discovery.files).toHaveLength(16);
     expect(discovery.diagnostics).toEqual([]);
     expect(discovery.coreTraceability).toEqual({
       currentIndex: expect.objectContaining({
@@ -89,7 +89,7 @@ describe("discoverProject", () => {
       ],
       sprintsPresent: true,
       verificationPresent: true,
-      codeReviewPresent: false,
+      codeReviewPresent: true,
       traceabilityPresent: true,
     });
     expect(

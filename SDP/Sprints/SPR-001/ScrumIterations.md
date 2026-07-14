@@ -1,6 +1,6 @@
 # SPR-001 — Deterministic Read-Only Analysis Foundation
 
-Status: active  
+Status: completed
 Sprint ID: `SPR-001`  
 Tier: `TIER-001`  
 Date opened: 2026-07-11
@@ -15,13 +15,13 @@ Authorized by `STU-001`, `REQSET-001`, `ARC-001`, `DAN-001`, `DES-001` and `IMP-
 
 ## Iteration ITR-001 — Foundation and core traceability
 
-Status: active  
+Status: completed
 Iteration ID: `ITR-001`
 
-The Iteration executes the ordered Slice contracts below. SLC-001 through
-SLC-006 are completed and accepted. SLC-007 was activated for final Tier 1
-integration and is blocked pending supervising requirement/architecture
-direction recorded in its blocking discovery.
+The Iteration executed the ordered Slice contracts below. SLC-001 through
+SLC-007 are completed with passed verification and approved review
+dispositions. The SLC-007 acceptance-contract block and its supervising
+resolution remain preserved below as historical evidence.
 
 ---
 
@@ -2257,7 +2257,7 @@ leaves CurrentIndex on SLC-006 and SLC-007 planned.
 
 ## SLC-007 — Tier 1 integration, acceptance and handoff
 
-Status: blocked; supervising requirement/architecture direction required
+Status: completed; Tier 1 boundary closed
 Slice ID: SLC-007
 
 ### Goal
@@ -2291,7 +2291,7 @@ SLC-007 verifies the complete Tier 1 acceptance set without reclassifying
 Tier 2 or Future requirements as complete:
 
 - functional: REQ-F-001 through REQ-F-006;
-- data/parsing: REQ-D-001 through REQ-D-006;
+- data/parsing: REQ-D-001, REQ-D-002 and REQ-D-004 through REQ-D-007;
 - validation: REQ-V-001 through REQ-V-008;
 - provenance: REQ-P-001 through REQ-P-004;
 - UI: REQ-UI-001 through REQ-UI-004;
@@ -2301,7 +2301,9 @@ Tier 2 or Future requirements as complete:
 - maintainability: REQ-M-001 through REQ-M-005; and
 - non-functional: REQ-NF-001 through REQ-NF-005.
 
-Authoritative references are STU-001 and DEC-STU-001 through DEC-STU-014;
+`REQ-D-003` is assigned to TIER-003 and is not claimed by this Slice.
+
+Authoritative references are STU-001 and DEC-STU-001 through DEC-STU-016;
 ARC-COMP-001 through ARC-COMP-009 and ARC-COMP-011; ADR-001 through ADR-008;
 DES-001 sections 1 through 14; IMP-001; and VER-PLAN-001.
 
@@ -2311,11 +2313,15 @@ normalized snapshot, provenance preservation, deterministic rules/findings,
 read-only behavior, SharedUI presentation, loading/ready/empty/failed states,
 diagnostics/findings separation, accessible findings/provenance, compatibility
 reporting, no analyzed-code execution, no project mutation, a static Vite
-build and clean-install reproducibility.
+build and clean-install reproducibility. Acceptance also proves canonical-path
+discovery/classification of standard Markdown files without reading their
+contents and describes compatibility as structured-core rather than complete
+installed-document analysis.
 
 ### Authorized scope
 
 - integration defects that prevent Tier 1 acceptance;
+- the bounded `SDP007` qualification correction required by `DEC-STU-016`;
 - missing acceptance tests;
 - deterministic fixture coverage;
 - documentation corrections;
@@ -2345,7 +2351,7 @@ Maintain or add small deterministic inputs representing:
 6. a dangling relation;
 7. unresolved active work;
 8. contradictory active hierarchy;
-9. a completed Slice without passed verification; and
+9. a completed Slice without qualifying structured verification evidence; and
 10. partial or unknown compatibility.
 
 Fixtures may be in memory or repository fixture directories. Keep inputs
@@ -2354,10 +2360,16 @@ repository.
 
 ### Required end-to-end acceptance behavior
 
-The clean supported fixture must discover all core files, parse without
-diagnostics, normalize deterministically, produce no Tier 1 findings, render
-supported compatibility and declared active work, and show honest
-no-diagnostics/no-findings states.
+The clean supported fixture must discover all core files and standard Markdown
+paths, read and parse only the three structured traceability files without
+diagnostics, normalize deterministically, include a completed Slice with
+qualifying structured verification evidence, produce no Tier 1 findings,
+render supported structured-core compatibility and declared active work, and
+show honest no-diagnostics/no-findings states.
+
+The compatibility profile ID or adjacent visible label must explicitly name
+the structured-core boundary; `sdp-toolkit-current` must not be presented as
+complete installed-document coverage.
 
 At least one deterministic broken fixture must traverse the real complete
 application pipeline and render compatibility or input diagnostics, one or
@@ -2386,15 +2398,33 @@ Add or consolidate permanent tests proving:
 15. filesystem, graph, report and write-back behavior remain absent; and
 16. the production build is static and reproducible.
 
+### Required SDP007 correction tests
+
+Permanent focused tests must prove at least:
+
+1. `outcome: passed` with no `check` or `command` does not qualify;
+2. an empty `check` does not qualify;
+3. a whitespace-only `command` does not qualify;
+4. a `check` with a non-passed outcome does not qualify;
+5. a `command` with exact passed outcome qualifies;
+6. a `check` with exact passed outcome qualifies;
+7. one qualifying target suppresses SDP007 despite another incomplete target;
+8. a failing finding includes every resolved target provenance used in the
+   conclusion while missing targets receive no invented provenance;
+9. the clean bundled fixture remains finding-free with non-vacuous qualifying
+   structured verification evidence; and
+10. the Tier 1 analysis path performs no Markdown content read.
+
 ### Documentation
 
 Inspect and correct README.md, AGENTS-project.md, Handoff.md,
 implementationNotes.md and any stale command/behavior description. README must
 state the actual completed Tier 1 capabilities, the fixture-only limitation,
 install/test/typecheck/build commands, the SharedUI tarball dependency, no
-local-folder access, no repository mutation, no Markdown coverage, and no
-graph/report/repair features. Planned Tier 2 behavior must not be described as
-implemented.
+local-folder access, no repository mutation, path-only Markdown discovery with
+no Markdown content/ID/status/verification-document coverage, and no
+graph/report/repair features. Planned Tier 2 or Tier 3 behavior must not be
+described as implemented.
 
 ### SLC-007 verification
 
@@ -2412,7 +2442,10 @@ smokes, keyboard navigation, screen/state labels, stale-result clearing after
 failure/source switch, compatibility states, provenance detail, deterministic
 repeat analysis, full boundary scans, append-only Ledger validation,
 CurrentIndex/Relations/verification/review cross-reference validation, and an
-isolated clean install using repository-owned files.
+isolated clean install using repository-owned files. Focused evidence must also
+cover every `DEC-STU-016` qualification case, resolved-target provenance,
+missing-target non-invention, standard Markdown path classification and zero
+Markdown `readText` calls.
 
 ### Tier 1 verification record
 
@@ -2421,7 +2454,9 @@ evidence across SLC-001 through SLC-007 rather than merely linking prior
 records. It must state the accepted commit baseline, commands rerun, integrated
 fixture workflows, known limitations, Tier 1 requirement coverage,
 security/read-only checks, deterministic behavior and final result. It must not
-claim future requirements.
+claim future requirements. It must explicitly call Tier 1 the structured-core
+profile and state that Markdown IDs, document statuses and
+verification-document content are planned for TIER-003 and were not analyzed.
 
 ### Independent review
 
@@ -2459,7 +2494,8 @@ loading/failure/empty/compatibility states and accessibility pass,
 documentation matches reality, clean install/typecheck/tests/build pass,
 VER-SLC-007 and VER-TIER-001 exist, fresh SLC and Tier reviews approve,
 Sprint/Iteration closure and append-only traceability are coherent, CurrentIndex
-still points to SLC-007, and no Tier 2 work exists.
+still points to SLC-007, Tier 1 is described honestly as structured-core, and no
+Tier 2 or Tier 3 implementation work exists.
 
 ### Discoveries policy and stop condition
 
@@ -2499,3 +2535,89 @@ product/requirements directions.
 CurrentIndex remains on SLC-007. SLC-001 through SLC-006 remain completed. No
 fixture, test, UI, README, product-code, verification/review record or Tier 2
 change was made after this stop condition was identified.
+
+### Supervising resolution — 2026-07-13
+
+The supervising architect accepted the stop decision and resolved the conflict
+without rewriting the blocking discovery or immutable event 056:
+
+- `DEC-STU-015` defines Tier 1 as the structured-core analyzer profile. Tier 1
+  parses content only from CurrentIndex, Relations and Ledger, while standard
+  Markdown files and directories are discovered/classified by canonical path
+  only. Markdown structure, stable IDs and lifecycle/work-document content are
+  assigned to TIER-003.
+- `REQ-D-003` is therefore a TIER-003 requirement. `REQ-D-007` is the Tier 1
+  path-discovery/classification requirement and is part of this Slice.
+- `DEC-STU-016` requires an explicit Slice-to-verification relation resolving
+  to a verification entity with exact `outcome: passed` and a non-empty
+  trimmed `check` or `command`. Plans, reviews and outcome-only entities do not
+  qualify. Tier 1 neither reads verification Markdown nor executes commands.
+- For active acceptance and the bounded correction, `DEC-STU-016` supersedes
+  the outcome-only allowance recorded in the historical SLC-005 SDP007
+  contract. That completed Slice contract and its review history remain
+  unchanged as historical evidence.
+- The bounded `SDP007` semantic correction and its permanent regressions are
+  authorized as an SLC-007 integration defect. No new rule ID is authorized.
+
+The block event remains historical evidence. The planning and traceability
+correction authorizes SLC-007 to resume as active. CurrentIndex remains on
+SLC-007; SLC-001 through SLC-006 remain completed; Sprint, Iteration and Tier
+remain open; and no verification, review, Tier 2 or Tier 3 implementation is
+created by this resolution alone.
+
+Known Tier 1 limitations are explicit acceptance conditions: fixture-only
+project acquisition; no local-folder adapter; no Markdown content, ID, status
+or verification-document analysis; no graph, report, CLI/CI or repair surface;
+and no execution of recorded verification commands.
+
+### Master verification checkpoint — 2026-07-13
+
+The bounded Worker implementation and fresh audit-correction pass are complete.
+The Master inspected the final product/test tree and independently passed clean
+install, every focused acceptance group, strict typecheck, all 20 test files and
+155 tests, the 2,069-module static build, exact dependency resolution, diff
+hygiene and the full architecture/security/prohibited-scope scans.
+
+Real in-app Browser workflows passed for both shipped fixtures. The clean path
+rendered structured-core identity, declared work and honest empty states. The
+broken path rendered real diagnostics, eight canonical findings and complete
+`SDP007` provenance; repeat analysis, filter reset and a broken → clean →
+broken round trip retained no duplicate or stale state. No browser console
+warning/error or horizontal overflow was observed. Permanent rendered tests
+pass native Enter/Space activation, partial/unknown source-derived
+compatibility, failure clearing and complete SourceRef fields.
+
+A repository-only isolated copy reproduced `npm ci`, typecheck, all tests,
+build and dependency listing, with all 113 copied file hashes matching the
+working tree. Planning/traceability validation confirms 59 requirement IDs, 16
+Study decisions, the exact unchanged 56-event committed Ledger prefix, unique
+current event IDs, retained block event 056, appended unblock event 057,
+`REQ-D-003` owned only by planned TIER-003, and `REQ-D-007` linked to SLC-007.
+
+`VER-SLC-007`, `VER-TIER-001` and immutable verification events 058-059 now
+record the real evidence. SLC-007, TIER-001, ITR-001 and SPR-001 remain open;
+CurrentIndex remains on SLC-007. A fresh independent Reviewer must assess both
+the Slice and full Tier before any completion status is written.
+
+### Fresh review and final Tier 1 closure — 2026-07-13
+
+Fresh independent reviews `REV-SLC-007` and `REV-TIER-001` approved the Slice
+and complete Tier with no actionable findings. The Reviewer independently
+re-ran clean install, focused acceptance suites, strict typecheck, all 20 test
+files and 155 tests, the 2,069-module build, dependency resolution, diff and
+architecture scans, traceability checks and the isolated-copy verification.
+The review records transparently note that the Reviewer browser backend was
+unavailable; the Master's real in-app Browser evidence and the independently
+re-run rendered real-source tests provide the accepted browser corroboration.
+
+Immutable events 060-065 record the two approved reviews and completion of
+SLC-007, ITR-001, SPR-001 and TIER-001. Their Relations statuses and links are
+completed. The overall project remains `active-development` because later
+Tiers remain planned, and CurrentIndex deliberately retains
+`SPR-001 / ITR-001 / SLC-007` as the last completed execution boundary.
+
+Tier 1 closes with its declared limitations: fixture-only acquisition,
+path-only Markdown discovery, no Markdown content or stable-ID analysis, no
+local-folder adapter, and no graph/report/CLI/CI/repair/write-back surfaces.
+No Tier 2 or Tier 3 implementation has begun. Execution stops at the Tier 1
+boundary pending new supervising direction.

@@ -51,11 +51,13 @@ describe("loadCoreTraceability", () => {
     });
     expect(result.relations?.value?.sections.map((section) => section.key)).toEqual([
       "documents",
+      "tiers",
       "sprints",
       "iterations",
       "slices",
+      "verification",
     ]);
-    expect(result.ledger?.value?.records).toHaveLength(3);
+    expect(result.ledger?.value?.records).toHaveLength(5);
   });
 
   it("reuses one SLC-002 discovery pass and reads only its three discovered paths", async () => {
@@ -83,7 +85,7 @@ describe("loadCoreTraceability", () => {
 
     expect(result.currentIndex?.value).toBeDefined();
     expect(result).not.toHaveProperty("relations");
-    expect(result.ledger?.value?.records).toHaveLength(3);
+    expect(result.ledger?.value?.records).toHaveLength(5);
     expect(result.diagnostics).toEqual([
       expect.objectContaining({
         code: "PARSE_APPLICATION_READ_FAILED",
@@ -106,7 +108,7 @@ describe("loadCoreTraceability", () => {
 
     expect(result.currentIndex?.value).toBeDefined();
     expect(result.relations?.value).toBeUndefined();
-    expect(result.ledger?.value?.records).toHaveLength(3);
+    expect(result.ledger?.value?.records).toHaveLength(5);
     expect(result.diagnostics).toEqual([
       expect.objectContaining({
         code: "PARSE_YAML_SYNTAX_ERROR",

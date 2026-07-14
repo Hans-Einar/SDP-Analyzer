@@ -1,6 +1,6 @@
 # Handoff — SLC-007
 
-Status: SLC-007 blocked; supervising requirement/architecture direction required
+Status: SLC-007, ITR-001, SPR-001 and TIER-001 completed
 Active Slice: `SLC-007`
 Sprint: `SPR-001`
 Iteration: `ITR-001`
@@ -13,15 +13,57 @@ approved `REV-SLC-006`. The Master recorded immutable acceptance event 054,
 expanded the complete SLC-007 contract, advanced CurrentIndex, activated the
 full SLC-007 relation and appended activation event 055 before product work.
 
-SLC-001 through SLC-006 remain completed. CurrentIndex remains on SLC-007, but
-implementation is blocked by the governing conflict below. Local folder
-access, Markdown parsing, graph/report, CLI/CI, repair/write-back, SharedUI
-package changes and every other Tier 2 capability remain unauthorized.
+SLC-001 through SLC-007 are completed. CurrentIndex deliberately remains on
+SLC-007 as the last completed execution boundary. The historical governing
+conflict below is preserved and resolved by `DEC-STU-015` and `DEC-STU-016`.
 
-No product code, commit, push or pull request was produced by the administrative
-transition or the stopped Worker pass.
+The bounded implementation plus a separate audit-correction Worker pass are
+complete. Master verification passed clean install, focused tests, all 20 test
+files/155 tests, typecheck, build, exact dependencies, architecture/security
+scans, traceability validation, a hash-matched repository-only isolated copy
+and real clean/broken in-app Browser workflows. `VER-SLC-007` and
+`VER-TIER-001` record the exact evidence; events 058-059 record passed
+verification. Fresh independent `REV-SLC-007` and `REV-TIER-001` approved both
+scopes with no actionable findings. Events 060-065 record review and closure
+of SLC-007, ITR-001, SPR-001 and TIER-001.
+
+The project status is `active-development`, not complete, because later Tiers
+remain planned. Tier 1 work stops here pending new supervising direction.
+
+Local folder access, Markdown content parsing or ID extraction, graph/report,
+CLI/CI, repair/write-back, SharedUI package changes and Tier 2/Tier 3
+implementation remain unauthorized. No commit, stage, push or pull request was
+created.
+
+## Supervising resolution and current direction
+
+The supervising architect confirmed that Tier 1 is the structured-core
+analyzer Tier. It reads and analyzes only CurrentIndex, Relations and Ledger.
+Standard Markdown paths and directory presence are discovered/classified from
+canonical file paths, but Markdown content, stable IDs, document statuses and
+verification-record content are deferred to TIER-003.
+
+`REQ-D-003` is now assigned to TIER-003 and is not part of SLC-007 acceptance.
+`REQ-D-007` requires Tier 1 path-only Markdown discovery. `DEC-STU-016` requires
+a completed Slice's explicit verification relation to resolve to a verification
+entity with exact `outcome: passed` plus a non-empty trimmed `check` or
+`command`. Outcome alone, a verification-plan relation or a review relation is
+insufficient; no command is executed.
+
+The historical block event 056 remains unchanged. Immutable event 057 records
+the supervising resolution and authorization to resume. Events 058-059 record
+passed SLC-007 and Tier verification; events 060-061 record approved fresh
+reviews; events 062-065 close the Slice, Iteration, Sprint and Tier.
+
+No agent should infer authorization to begin Tier 2 or Tier 3 from this
+closure. The next agent must re-anchor from repository state and wait for a
+new supervising contract before advancing CurrentIndex or opening work.
 
 ## Blocking discovery requiring supervising direction
+
+This section preserves the pre-resolution handoff state. The current direction
+is the supervising resolution immediately above; the block evidence itself is
+not rewritten.
 
 Tier 1 cannot be accepted exactly as currently specified:
 

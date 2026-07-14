@@ -11,7 +11,7 @@ import type {
   ProjectDiscoveryManifest,
 } from "./ProjectDiscoveryManifest";
 
-export const CURRENT_SDP_PROFILE_ID = "sdp-toolkit-current";
+export const CURRENT_SDP_PROFILE_ID = "sdp-toolkit-structured-core-v1";
 
 export const CORE_TRACEABILITY_PATHS = {
   currentIndex: "SDP/Traceability/CurrentIndex.yaml",

@@ -23,7 +23,7 @@ const config = defineDashboardConfig<AnalyzerDashboardState>({
       type: "stack",
       children: [{
           kind: "component", ref: "TopNav", props: {
-            title: "SDP Analyzer", subtitle: "Read-only repository evidence", statusLabel: "Fixture mode",
+            title: "SDP Analyzer", subtitle: "Read-only repository evidence", statusLabel: "Structured-core fixture mode",
           },
       }],
     },

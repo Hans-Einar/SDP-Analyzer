@@ -2,7 +2,7 @@ documents:
   STU-001:
     path: SDP/02--Study/study.md
     derives_from: [MANDATE]
-    decisions: [DEC-STU-001, DEC-STU-002, DEC-STU-003, DEC-STU-004, DEC-STU-005, DEC-STU-006, DEC-STU-007, DEC-STU-008, DEC-STU-009, DEC-STU-010, DEC-STU-011, DEC-STU-012, DEC-STU-013, DEC-STU-014]
+    decisions: [DEC-STU-001, DEC-STU-002, DEC-STU-003, DEC-STU-004, DEC-STU-005, DEC-STU-006, DEC-STU-007, DEC-STU-008, DEC-STU-009, DEC-STU-010, DEC-STU-011, DEC-STU-012, DEC-STU-013, DEC-STU-014, DEC-STU-015, DEC-STU-016]
   REQSET-001:
     path: SDP/03--Requirements/requirements.md
     derives_from: [STU-001]
@@ -26,17 +26,26 @@ tiers:
   TIER-001:
     derives_from: [STU-001, REQSET-001, ARC-001, DAN-001, DES-001, IMP-001]
     sprint: SPR-001
+    status: completed
+    verification: [VER-TIER-001]
+    review: [REV-TIER-001]
+  TIER-003:
+    derives_from: [STU-001, REQSET-001, ARC-001, DAN-001, DES-001, IMP-001]
+    status: planned
+    requirements: [REQ-D-003]
 
 sprints:
   SPR-001:
     path: SDP/Sprints/SPR-001/ScrumIterations.md
     tier: TIER-001
-    requirements: [REQ-F-001, REQ-F-002, REQ-F-003, REQ-F-004, REQ-F-005, REQ-F-006, REQ-D-001, REQ-D-002, REQ-D-003, REQ-D-004, REQ-D-005, REQ-D-006, REQ-V-001, REQ-V-002, REQ-V-003, REQ-V-004, REQ-V-005, REQ-V-006, REQ-V-007, REQ-V-008, REQ-P-001, REQ-P-002, REQ-P-003, REQ-P-004, REQ-UI-001, REQ-UI-002, REQ-UI-003, REQ-UI-004, REQ-T-001, REQ-T-002, REQ-T-003, REQ-T-004, REQ-T-005, REQ-S-001, REQ-S-002, REQ-S-003, REQ-C-001, REQ-C-002, REQ-C-003, REQ-M-001, REQ-M-002, REQ-M-003, REQ-M-004, REQ-M-005, REQ-NF-001, REQ-NF-002, REQ-NF-003, REQ-NF-004, REQ-NF-005]
+    status: completed
+    requirements: [REQ-F-001, REQ-F-002, REQ-F-003, REQ-F-004, REQ-F-005, REQ-F-006, REQ-D-001, REQ-D-002, REQ-D-004, REQ-D-005, REQ-D-006, REQ-D-007, REQ-V-001, REQ-V-002, REQ-V-003, REQ-V-004, REQ-V-005, REQ-V-006, REQ-V-007, REQ-V-008, REQ-P-001, REQ-P-002, REQ-P-003, REQ-P-004, REQ-UI-001, REQ-UI-002, REQ-UI-003, REQ-UI-004, REQ-T-001, REQ-T-002, REQ-T-003, REQ-T-004, REQ-T-005, REQ-S-001, REQ-S-002, REQ-S-003, REQ-C-001, REQ-C-002, REQ-C-003, REQ-M-001, REQ-M-002, REQ-M-003, REQ-M-004, REQ-M-005, REQ-NF-001, REQ-NF-002, REQ-NF-003, REQ-NF-004, REQ-NF-005]
     iteration: ITR-001
 
 iterations:
   ITR-001:
     sprint: SPR-001
+    status: completed
     slices: [SLC-001, SLC-002, SLC-003, SLC-004, SLC-005, SLC-006, SLC-007]
 
 slices:
@@ -118,15 +127,27 @@ slices:
     path: SDP/Sprints/SPR-001/ScrumIterations.md
     sprint: SPR-001
     iteration: ITR-001
-    status: blocked
-    requirements: [REQ-F-001, REQ-F-002, REQ-F-003, REQ-F-004, REQ-F-005, REQ-F-006, REQ-D-001, REQ-D-002, REQ-D-003, REQ-D-004, REQ-D-005, REQ-D-006, REQ-V-001, REQ-V-002, REQ-V-003, REQ-V-004, REQ-V-005, REQ-V-006, REQ-V-007, REQ-V-008, REQ-P-001, REQ-P-002, REQ-P-003, REQ-P-004, REQ-UI-001, REQ-UI-002, REQ-UI-003, REQ-UI-004, REQ-T-001, REQ-T-002, REQ-T-003, REQ-T-004, REQ-T-005, REQ-S-001, REQ-S-002, REQ-S-003, REQ-C-001, REQ-C-002, REQ-C-003, REQ-M-001, REQ-M-002, REQ-M-003, REQ-M-004, REQ-M-005, REQ-NF-001, REQ-NF-002, REQ-NF-003, REQ-NF-004, REQ-NF-005]
+    status: completed
+    requirements: [REQ-F-001, REQ-F-002, REQ-F-003, REQ-F-004, REQ-F-005, REQ-F-006, REQ-D-001, REQ-D-002, REQ-D-004, REQ-D-005, REQ-D-006, REQ-D-007, REQ-V-001, REQ-V-002, REQ-V-003, REQ-V-004, REQ-V-005, REQ-V-006, REQ-V-007, REQ-V-008, REQ-P-001, REQ-P-002, REQ-P-003, REQ-P-004, REQ-UI-001, REQ-UI-002, REQ-UI-003, REQ-UI-004, REQ-T-001, REQ-T-002, REQ-T-003, REQ-T-004, REQ-T-005, REQ-S-001, REQ-S-002, REQ-S-003, REQ-C-001, REQ-C-002, REQ-C-003, REQ-M-001, REQ-M-002, REQ-M-003, REQ-M-004, REQ-M-005, REQ-NF-001, REQ-NF-002, REQ-NF-003, REQ-NF-004, REQ-NF-005]
     architecture: [ARC-COMP-001, ARC-COMP-002, ARC-COMP-003, ARC-COMP-004, ARC-COMP-005, ARC-COMP-006, ARC-COMP-007, ARC-COMP-008, ARC-COMP-009, ARC-COMP-011, ADR-001, ADR-002, ADR-003, ADR-004, ADR-005, ADR-006, ADR-007, ADR-008]
-    study_decisions: [DEC-STU-001, DEC-STU-002, DEC-STU-003, DEC-STU-004, DEC-STU-005, DEC-STU-006, DEC-STU-007, DEC-STU-008, DEC-STU-009, DEC-STU-010, DEC-STU-011, DEC-STU-012, DEC-STU-013, DEC-STU-014]
+    study_decisions: [DEC-STU-001, DEC-STU-002, DEC-STU-003, DEC-STU-004, DEC-STU-005, DEC-STU-006, DEC-STU-007, DEC-STU-008, DEC-STU-009, DEC-STU-010, DEC-STU-011, DEC-STU-012, DEC-STU-013, DEC-STU-014, DEC-STU-015, DEC-STU-016]
     design: [DES-001]
     design_sections: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
     verification_plan: VER-PLAN-001
+    verification: [VER-SLC-007]
+    review: [REV-SLC-007]
 
 reviews:
+  REV-SLC-007:
+    path: SDP/CodeReview/REV-SLC-007.md
+    slice: SLC-007
+    verification: [VER-SLC-007]
+    disposition: approved
+  REV-TIER-001:
+    path: SDP/CodeReview/REV-TIER-001.md
+    tier: TIER-001
+    verification: [VER-TIER-001]
+    disposition: approved
   REV-SLC-006:
     path: SDP/CodeReview/REV-SLC-006.md
     slice: SLC-006
@@ -159,39 +180,59 @@ reviews:
     disposition: approved
 
 verification:
+  VER-SLC-007:
+    path: SDP/Verification/VER-SLC-007.md
+    slice: SLC-007
+    requirements: [REQ-F-001, REQ-F-002, REQ-F-003, REQ-F-004, REQ-F-005, REQ-F-006, REQ-D-001, REQ-D-002, REQ-D-004, REQ-D-005, REQ-D-006, REQ-D-007, REQ-V-001, REQ-V-002, REQ-V-003, REQ-V-004, REQ-V-005, REQ-V-006, REQ-V-007, REQ-V-008, REQ-P-001, REQ-P-002, REQ-P-003, REQ-P-004, REQ-UI-001, REQ-UI-002, REQ-UI-003, REQ-UI-004, REQ-T-001, REQ-T-002, REQ-T-003, REQ-T-004, REQ-T-005, REQ-S-001, REQ-S-002, REQ-S-003, REQ-C-001, REQ-C-002, REQ-C-003, REQ-M-001, REQ-M-002, REQ-M-003, REQ-M-004, REQ-M-005, REQ-NF-001, REQ-NF-002, REQ-NF-003, REQ-NF-004, REQ-NF-005]
+    check: Exact commands, integrated fixtures, real browser workflows, boundaries, traceability and isolated-copy results recorded in SDP/Verification/VER-SLC-007.md
+    outcome: passed
+    review: [REV-SLC-007]
+  VER-TIER-001:
+    path: SDP/Verification/VER-TIER-001.md
+    tier: TIER-001
+    requirements: [REQ-F-001, REQ-F-002, REQ-F-003, REQ-F-004, REQ-F-005, REQ-F-006, REQ-D-001, REQ-D-002, REQ-D-004, REQ-D-005, REQ-D-006, REQ-D-007, REQ-V-001, REQ-V-002, REQ-V-003, REQ-V-004, REQ-V-005, REQ-V-006, REQ-V-007, REQ-V-008, REQ-P-001, REQ-P-002, REQ-P-003, REQ-P-004, REQ-UI-001, REQ-UI-002, REQ-UI-003, REQ-UI-004, REQ-T-001, REQ-T-002, REQ-T-003, REQ-T-004, REQ-T-005, REQ-S-001, REQ-S-002, REQ-S-003, REQ-C-001, REQ-C-002, REQ-C-003, REQ-M-001, REQ-M-002, REQ-M-003, REQ-M-004, REQ-M-005, REQ-NF-001, REQ-NF-002, REQ-NF-003, REQ-NF-004, REQ-NF-005]
+    check: Integrated Tier 1 command, fixture, browser, security, traceability and isolated-copy results recorded in SDP/Verification/VER-TIER-001.md
+    outcome: passed
+    review: [REV-TIER-001]
   VER-SLC-006:
     path: SDP/Verification/VER-SLC-006.md
     slice: SLC-006
     requirements: [REQ-F-003, REQ-F-004, REQ-F-005, REQ-UI-001, REQ-UI-002, REQ-UI-003, REQ-UI-004, REQ-T-004, REQ-NF-003, REQ-NF-004]
+    check: Exact command set and results recorded in SDP/Verification/VER-SLC-006.md
     outcome: passed
   VER-SLC-005:
     path: SDP/Verification/VER-SLC-005.md
     slice: SLC-005
     requirements: [REQ-F-004, REQ-F-005, REQ-V-001, REQ-V-002, REQ-V-003, REQ-V-004, REQ-V-005, REQ-V-006, REQ-V-007, REQ-V-008, REQ-P-003, REQ-M-003, REQ-M-005, REQ-NF-001, REQ-NF-004, REQ-T-001, REQ-T-002]
+    check: Exact command set and results recorded in SDP/Verification/VER-SLC-005.md
     outcome: passed
     review: [REV-SLC-005]
   VER-SLC-001:
     path: SDP/Verification/VER-SLC-001.md
     slice: SLC-001
     requirements: [REQ-M-001, REQ-M-004, REQ-NF-005, REQ-UI-004, REQ-T-003, REQ-F-001, REQ-M-002, REQ-UI-001]
+    check: Exact command set and results recorded in SDP/Verification/VER-SLC-001.md
     outcome: passed
     review: [REV-SLC-001]
   VER-SLC-002:
     path: SDP/Verification/VER-SLC-002.md
     slice: SLC-002
     requirements: [REQ-F-002, REQ-P-001, REQ-M-002, REQ-P-002, REQ-D-005, REQ-C-001, REQ-C-002, REQ-NF-001, REQ-NF-002, REQ-T-001, REQ-T-003, REQ-S-001, REQ-S-003]
+    check: Exact command set and results recorded in SDP/Verification/VER-SLC-002.md
     outcome: passed
     review: [REV-SLC-002]
   VER-SLC-003:
     path: SDP/Verification/VER-SLC-003.md
     slice: SLC-003
     requirements: [REQ-D-001, REQ-D-002, REQ-D-004, REQ-P-002, REQ-NF-002, REQ-D-005, REQ-D-006, REQ-P-001, REQ-P-003, REQ-T-001, REQ-T-003, REQ-S-001, REQ-C-002, REQ-NF-001]
+    check: Exact command set and results recorded in SDP/Verification/VER-SLC-003.md
     outcome: passed
     review: [REV-SLC-003]
   VER-SLC-004:
     path: SDP/Verification/VER-SLC-004.md
     slice: SLC-004
     requirements: [REQ-D-005, REQ-D-006, REQ-P-001, REQ-P-004, REQ-NF-001, REQ-NF-002, REQ-M-001, REQ-M-003, REQ-F-003, REQ-V-002, REQ-V-003, REQ-V-005, REQ-V-006, REQ-V-007, REQ-C-001, REQ-C-002, REQ-NF-004, REQ-T-001, REQ-T-003]
+    check: Exact command set and results recorded in SDP/Verification/VER-SLC-004.md
     outcome: passed
     review: [REV-SLC-004]
 

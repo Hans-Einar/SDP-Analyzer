@@ -3,6 +3,7 @@
 Status: accepted for Tier 1 planning  
 ID: `DES-001`  
 Date: 2026-07-11
+Amended: 2026-07-13 (structured-core and SDP007 qualification)
 
 ## 1. Design goal
 
@@ -163,6 +164,16 @@ Initial rule IDs:
 
 Rules not yet implementable from Tier 1 normalized inputs may be registered later; they must not emit guessed findings.
 
+For `SDP007`, Tier 1 applies `DEC-STU-016` only to normalized structured
+evidence. A completed Slice qualifies when at least one explicit
+`verification` relation resolves to a `verification` entity whose attributes
+contain exact `outcome: passed` and either a non-empty trimmed string `check` or
+a non-empty trimmed string `command`. Verification-plan and review relations do
+not qualify. `outcome: passed` alone does not qualify. If no target qualifies,
+the finding retains every resolved target source actually inspected; a missing
+target receives no invented provenance. The rule does not read Markdown or
+execute the recorded command/check, and React does not interpret this evidence.
+
 ## 6. Parsing interfaces
 
 ```ts
@@ -177,7 +188,7 @@ Concrete parser results may use internal typed raw structures. YAML parsing uses
 
 ## 7. Discovery and normalization
 
-Discovery returns a manifest containing exact matches for the three core traceability paths plus standard directory presence. Tier 1 normalization:
+Discovery returns a manifest containing exact matches for the three core traceability paths plus standard directory presence and canonical path-based classification of standard Markdown files. Because `ProjectSource.listFiles()` exposes file entries, standard-directory presence is inferred deterministically from canonical file-path prefixes; directory entries and content reads are not required. Tier 1 parsers read only the three core traceability files; Markdown content is not read or normalized. Tier 1 normalization:
 
 1. creates project and work entities only from explicit IDs/keys present in structured files;
 2. preserves unresolved references as relations/declarations so rules can report them;
@@ -263,7 +274,7 @@ SharedUI config and components remain presentation-only. They must not parse SDP
 
 ## 12. Exact Tier 1 boundary
 
-Tier 1 analyzes bundled fixtures and the three core traceability files. It may discover standard Markdown documents but does not need comprehensive Markdown entity parsing. It does not include local folder selection, graphing, write-back, CLI, CI, report download, stale-time policy or automated verification execution.
+Tier 1 analyzes bundled fixtures against the `DEC-STU-015` structured-core profile. It discovers and classifies standard Markdown files and directories by canonical path, but does not read their content, parse Markdown headings/structure, extract Markdown stable IDs, normalize Markdown entities, or interpret verification-document content. Those capabilities belong to TIER-003. Tier 1 does not include local folder selection, graphing, write-back, CLI, CI, report download, stale-time policy or automated verification execution.
 
 ## 13. Test design
 
@@ -272,6 +283,7 @@ Tier 1 analyzes bundled fixtures and the three core traceability files. It may d
 - Parser tests cover valid, missing, duplicate-key and malformed-line cases.
 - Normalization tests compare canonical snapshots.
 - Rule tests assert both emitted and absent findings.
+- Integration tests assert that Tier 1 never calls `readText` for Markdown paths.
 - UI tests assert SharedUI-rendered state, component registration and finding provenance presentation.
 - Every implementation Slice runs typecheck, tests and build; UI Slices add rendered checks.
 
@@ -282,6 +294,7 @@ Tier 1 analyzes bundled fixtures and the three core traceability files. It may d
 - Local custom UI components are domain-specific, registered by stable key and documented with purpose/constraints/props.
 - No source mutation.
 - Every finding is explainable and sourced.
+- Verification qualification is owned by the validation rule over normalized structured facts, never by React.
 - Unsupported data never becomes silent success.
 - Analysis does not depend on ambient current time.
 - Ledger ordering is preserved.

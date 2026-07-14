@@ -3,6 +3,7 @@
 Status: accepted for Tier 1 planning  
 ID: `DAN-001`  
 Date: 2026-07-11
+Amended: 2026-07-13 (Tier 1/Tier 3 content boundary)
 
 ## 1. Purpose
 
@@ -13,8 +14,8 @@ Translate `ARC-001` into horizontal layer contracts, compare meaningful alternat
 | Layer | Inputs | Outputs | Must not own |
 |---|---|---|---|
 | Project source | selected fixture/handle/path | repository-relative files and text | SDP semantics |
-| Discovery/profile | file manifest | discovered sources, profile status | parsing details or UI |
-| Parsing | source text | typed raw records and diagnostics | cross-file policy |
+| Discovery/profile | file manifest | discovered sources, path-classified Markdown, profile status | content parsing or UI |
+| Parsing | structured-core source text in Tier 1 | typed raw records and diagnostics | cross-file policy or Markdown content |
 | Normalization | parsed records | immutable `ProjectSnapshot` | rendering state |
 | Validation | snapshot + explicit context | deterministic findings | source mutation |
 | Application/query | analysis result | summaries and view models | parser internals |
@@ -46,7 +47,7 @@ Translate `ARC-001` into horizontal layer contracts, compare meaningful alternat
 2. Require front matter everywhere.
 3. Extract explicit ID tokens using documented patterns and preserve unresolved documents.
 
-**Decision:** option 3. Inference from prose would create false confidence.
+**Decision:** option 3 for TIER-003. Under `DEC-STU-015`, Tier 1 stops at canonical Markdown path discovery/classification and does not read Markdown content. Inference from prose would create false confidence.
 
 ### Validation execution
 
@@ -75,9 +76,9 @@ Translate `ARC-001` into horizontal layer contracts, compare meaningful alternat
 
 ### `TIER-001` — Deterministic fixture analysis core and thin UI
 
-Load one bundled fixture, discover and parse the three traceability files, normalize active declarations/entities/relations/ledger events, run the bounded initial rules, and display summary, diagnostics and findings with provenance.
+Load one bundled fixture, discover/classify standard Markdown paths, parse only the three structured traceability files, normalize active declarations/entities/relations/ledger events, run the bounded initial rules, and display summary, diagnostics and findings with provenance. Compatibility is explicitly the structured-core profile defined by `DEC-STU-015`.
 
-Excluded: browser folder access, broad Markdown entity extraction, graph, report download, stale-time policy and project mutation.
+Excluded: browser folder access, Markdown content reads or entity/ID extraction, graph, report download, stale-time policy and project mutation. Tier 1 verification qualification uses only structured relations and attributes under `DEC-STU-016`.
 
 ### `TIER-002` — Explicit local directory acquisition
 
@@ -85,7 +86,7 @@ Add File System Access API capability detection, permission flow and a browser s
 
 ### `TIER-003` — Lifecycle and work-document coverage
 
-Parse explicit IDs and statuses from lifecycle, Sprint, Iteration, Slice, Verification and Review Markdown documents. Add hierarchy, completion and evidence rules against representative fixtures.
+Parse Markdown headings and documented structure; extract explicit stable IDs and statuses from lifecycle, Sprint, Iteration, Slice, Verification and Review Markdown documents; and add richer verification-record interpretation plus hierarchy, completion and evidence rules against representative fixtures.
 
 ### `TIER-004` — Machine-readable reports and automation boundary
 

@@ -1,7 +1,7 @@
 project:
   id: SDP-ANALYZER
   name: SDP-Analyzer
-  status: implementation-ready
+  status: active-development
   tier: TIER-001
 
 active:

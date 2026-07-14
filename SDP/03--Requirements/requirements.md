@@ -3,11 +3,13 @@
 Status: accepted for Tier 1 planning  
 ID: `REQSET-001`  
 Date: 2026-07-11
+Amended: 2026-07-13 (Tier 1 structured-core boundary)
 
 ## Scope notation
 
 - **T1**: first vertical Tier and initial implementation programme.
 - **T2**: later local-project and navigation expansion.
+- **T3**: lifecycle and work-document content coverage.
 - **Future**: explicitly outside the initial programme.
 
 ## Functional requirements
@@ -25,20 +27,21 @@ Date: 2026-07-11
 
 - `REQ-D-001` [T1]: YAML shall be parsed without executing custom tags and duplicate mapping keys shall produce diagnostics.
 - `REQ-D-002` [T1]: Each non-blank `Ledger.ndjson` line shall be parsed independently as one JSON object, preserving line order and line provenance.
-- `REQ-D-003` [T1]: Markdown discovery shall use standard directory conventions and extract only explicit stable-ID tokens and documented structure.
+- `REQ-D-003` [T3]: Markdown structural discovery shall use standard directory conventions and extract only explicit stable-ID tokens and documented structure from Markdown content. Its original Tier 1 assignment is corrected by `DEC-STU-015`; it is not a Tier 1 completion requirement.
 - `REQ-D-004` [T1]: The parser shall preserve unknown fields or report them; it shall not silently reinterpret unsupported data as valid canonical data.
 - `REQ-D-005` [T1]: The normalized snapshot shall contain sources, diagnostics, entities, relations, ledger events, active declarations and compatibility metadata.
 - `REQ-D-006` [T1]: Entity and relation ordering in serialized results shall be canonical and deterministic.
+- `REQ-D-007` [T1]: The analyzer shall discover and classify standard SDP Markdown files and directories by canonical repository-relative path without parsing their content or treating them as normalized entities.
 
 ## Validation requirements
 
 - `REQ-V-001` [T1]: Report missing or unparseable core traceability files.
-- `REQ-V-002` [T1]: Report duplicate stable IDs with every known definition location.
+- `REQ-V-002` [T1]: Report duplicate stable IDs among normalized structured-core definitions with every known structured definition location. Markdown-wide duplicate detection belongs to TIER-003.
 - `REQ-V-003` [T1]: Report relation endpoints that do not resolve to normalized entities.
 - `REQ-V-004` [T1]: Report malformed ledger lines without preventing valid lines from being analyzed.
 - `REQ-V-005` [T1]: Report active Sprint, Iteration or Slice references that do not resolve.
 - `REQ-V-006` [T1]: Report contradictory active hierarchy relationships.
-- `REQ-V-007` [T1]: Report a Slice declared complete when no qualifying verification entity is related to it.
+- `REQ-V-007` [T1]: Report a Slice declared complete when no qualifying verification entity is related to it. “Qualifying verification” follows `DEC-STU-016`: an explicit `verification` relation must resolve to a verification entity with exact `outcome: passed` and a non-empty string `check` or `command` attribute.
 - `REQ-V-008` [T1]: Report unsupported or ambiguous compatibility as `unknown` or an explicit compatibility finding, never silent success.
 - `REQ-V-009` [T2]: Detect stale or unfinished work only from explicit status and timestamp policy supplied to the rule engine.
 
@@ -76,7 +79,7 @@ Date: 2026-07-11
 
 ## Compatibility requirements
 
-- `REQ-C-001` [T1]: The analyzer shall identify the supported installed SDP profile described by `STU-001`.
+- `REQ-C-001` [T1]: The analyzer shall identify the supported Tier 1 structured-core profile defined by `DEC-STU-015`, while reporting that Markdown files are path-discovered but their content is outside Tier 1 analysis.
 - `REQ-C-002` [T1]: Partial or historical variants shall produce explicit compatibility metadata and findings.
 - `REQ-C-003` [T1]: Fixture mode shall work without File System Access API support.
 - `REQ-C-004` [T2]: Folder selection shall degrade gracefully on unsupported browsers.
@@ -100,7 +103,7 @@ Date: 2026-07-11
 
 ## Tier 1 acceptance criteria
 
-Tier 1 is accepted when a bundled fixture can be analyzed end-to-end; the normalized model and initial rules are covered by deterministic tests; the React UI displays summary, active declarations, diagnostics and findings with provenance; typecheck, tests and build pass; and no analyzed repository content is executed or mutated.
+Tier 1 is accepted when a bundled fixture can be analyzed end-to-end against the structured-core profile; standard Markdown paths are discovered and classified without content reads; the normalized model and initial rules are covered by deterministic tests; the React UI displays summary, active declarations, diagnostics and findings with provenance; typecheck, tests and build pass; and no analyzed repository content is executed or mutated. Acceptance must state that Markdown IDs, document statuses and verification-document content remain outside Tier 1 and are planned for TIER-003.
 
 ## Traceability policy
 

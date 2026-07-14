@@ -85,7 +85,7 @@ function createDiscovery(
       codeReviewPresent: false,
       traceabilityPresent: true,
     },
-    profile: { id: "sdp-toolkit-current", support },
+    profile: { id: "sdp-toolkit-structured-core-v1", support },
     diagnostics,
   };
 }

@@ -1,11 +1,13 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { bundledFixtureSource } from "../adapters/fixtures/bundledFixtureSource";
+import { brokenFixtureSource } from "../adapters/fixtures/brokenFixtureSource";
 import { analyzeProject, type ProjectAnalysis } from "../application/analyzeProject";
-import type { Finding } from "../core/findings/Finding";
+import type { ProjectSource } from "../core/source/ProjectSource";
+import type { SourceRef } from "../core/source/SourceRef";
 import { App } from "./App";
 import { analyzerComponentRegistry, analyzerDashboard } from "./dashboardConfig";
 
@@ -13,6 +15,14 @@ afterEach(cleanup);
 const context = { analyzerVersion: "0.1.0", profileId: "sdp-tier-1", analysisTime: "2026-07-12T00:00:00Z" };
 
 async function baseAnalysis(): Promise<ProjectAnalysis> { return analyzeProject(bundledFixtureSource, context); }
+
+function expectedRange(start: number | undefined, end: number | undefined) {
+  return start === undefined
+    ? "Not available"
+    : end === undefined
+      ? String(start)
+      : `${start}-${end}`;
+}
 
 function expectDetailItem(panelTitle: string, label: string, expectedValue: string) {
   const title = screen.getByText(panelTitle, { selector: '[data-slot="card-title"]' });
@@ -22,6 +32,24 @@ function expectDetailItem(panelTitle: string, label: string, expectedValue: stri
   const row = term.parentElement;
   if (row === null) throw new Error(`Detail row not found: ${label}`);
   expect(within(row).getByText(expectedValue, { exact: true, selector: "dd" })).toBeInTheDocument();
+}
+
+function expectRenderedSourceRef(source: SourceRef, index: number) {
+  const panelTitle = `Provenance source ${index + 1}`;
+  expectDetailItem(panelTitle, "Source ID", source.sourceId);
+  expectDetailItem(panelTitle, "Path", source.path);
+  expectDetailItem(panelTitle, "Kind", source.kind);
+  expectDetailItem(
+    panelTitle,
+    "Line range",
+    expectedRange(source.lineStart, source.lineEnd),
+  );
+  expectDetailItem(
+    panelTitle,
+    "Column range",
+    expectedRange(source.columnStart, source.columnEnd),
+  );
+  expectDetailItem(panelTitle, "Pointer", source.pointer ?? "Not available");
 }
 
 describe("App workflow", () => {
@@ -36,19 +64,33 @@ describe("App workflow", () => {
     expectDetailItem("Selected bundled source", "Fixture", "Bundled minimal SDP fixture");
     expectDetailItem("Selected bundled source", "Source ID", "fixture:minimal");
     expectDetailItem("Selected bundled source", "Source type", "Bundled fixture");
+    expect(screen.getByRole("combobox", { name: "Select bundled fixture" })).toHaveValue("fixture:minimal");
+    expect(screen.getByRole("option", { name: "Bundled broken SDP fixture" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Analyzing selected fixture" })).toBeDisabled();
     expect(screen.getByText("Analyzing bundled fixture")).toBeInTheDocument();
     expect(screen.getByText(/Loading Bundled minimal SDP fixture/)).toBeInTheDocument();
+    const loadingRegion = screen.getByText("Analyzing bundled fixture").closest("section");
+    expect(loadingRegion).toHaveAttribute("aria-live", "polite");
+    expect(loadingRegion).toHaveAttribute("aria-busy", "true");
     resolve(await baseAnalysis());
     expect(await screen.findByText("Bundled fixture analysis")).toBeInTheDocument();
     expect(screen.getByText("Compatibility: supported")).toBeInTheDocument();
+    expect(screen.getByText("Structured-core profile")).toBeInTheDocument();
+    expect(screen.getByText(/Markdown content, IDs, statuses, and verification records are not analyzed/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Analyze selected fixture" })).toBeEnabled();
     expectDetailItem("Project summary", "Source", "Bundled minimal SDP fixture");
-    expectDetailItem("Project summary", "Discovered files", "14");
-    expectDetailItem("Project summary", "Profile ID", "sdp-toolkit-current");
+    expectDetailItem("Project summary", "Project ID", "FIXTURE-PROJECT");
+    expectDetailItem("Project summary", "Project name", "Bundled minimal fixture");
+    expectDetailItem("Project summary", "Project status", "active");
+    expectDetailItem("Project summary", "Declared tier", "TIER-001");
+    expectDetailItem("Project summary", "Discovered files", "16");
+    expectDetailItem("Project summary", "Profile ID", "sdp-toolkit-structured-core-v1");
     expectDetailItem("Project summary", "Profile support", "supported");
+    expectDetailItem("Project summary", "Content coverage", "Three structured traceability files; Markdown paths only");
     expectDetailItem("Project summary", "Input status", "Loaded without diagnostics");
-    expectDetailItem("Project summary", "Entities", "4");
-    expectDetailItem("Project summary", "Relations", "5");
-    expectDetailItem("Project summary", "Ledger events", "3");
+    expectDetailItem("Project summary", "Entities", "7");
+    expectDetailItem("Project summary", "Relations", "10");
+    expectDetailItem("Project summary", "Ledger events", "5");
     expectDetailItem("Project summary", "Parse/normalization diagnostics", "0");
     expectDetailItem("Project summary", "Validation findings", "0");
     expectDetailItem("Declared values", "Sprint", "SPR-001");
@@ -61,6 +103,114 @@ describe("App workflow", () => {
     expect(screen.queryByText(/health/i)).not.toBeInTheDocument();
   });
 
+  it("runs the shipped clean source through the default controller and analysis pipeline", async () => {
+    render(<App />);
+
+    expect(await screen.findByText("Bundled fixture analysis")).toBeInTheDocument();
+    expectDetailItem("Selected bundled source", "Source ID", "fixture:minimal");
+    expectDetailItem("Project summary", "Project ID", "FIXTURE-PROJECT");
+    expectDetailItem("Project summary", "Project name", "Bundled minimal fixture");
+    expectDetailItem("Project summary", "Input status", "Loaded without diagnostics");
+    expectDetailItem("Project summary", "Validation findings", "0");
+    expect(screen.getByText("No acquisition or parsing diagnostics")).toBeInTheDocument();
+    expect(screen.getByText("No validation findings")).toBeInTheDocument();
+  });
+
+  it("switches to the shipped broken source and renders real canonical findings with provenance", async () => {
+    const user = userEvent.setup();
+    const expected = await analyzeProject(brokenFixtureSource, context);
+    render(<App />);
+    expect(await screen.findByText("Bundled fixture analysis")).toBeInTheDocument();
+
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Select bundled fixture" }),
+      brokenFixtureSource.sourceId,
+    );
+
+    expect(await screen.findByText("PARSE_LEDGER_INVALID_JSON")).toBeInTheDocument();
+    expectDetailItem("Selected bundled source", "Fixture", "Bundled broken SDP fixture");
+    expectDetailItem("Project summary", "Project ID", "BROKEN-PROJECT");
+    expectDetailItem("Project summary", "Project name", "Bundled broken fixture");
+    expectDetailItem("Project summary", "Project status", "needs-attention");
+    expectDetailItem("Project summary", "Declared tier", "TIER-001");
+
+    const findingList = screen.getByRole("list", {
+      name: "Validation findings",
+    });
+    const buttons = within(findingList).getAllByRole("button");
+    expect(buttons).toHaveLength(expected.findings.length);
+    expect(
+      buttons.map((button) =>
+        expected.findings.findIndex((finding) =>
+          button.textContent?.includes(`${finding.ruleId}: ${finding.title}`),
+        ),
+      ),
+    ).toEqual(expected.findings.map((_, index) => index));
+
+    const expectedDetail = expected.findings.find(
+      (finding) => finding.ruleId === "SDP007",
+    );
+    if (expectedDetail === undefined) {
+      throw new Error("Expected the broken fixture to produce SDP007.");
+    }
+    expect(expectedDetail.sources.length).toBeGreaterThan(0);
+    await user.click(
+      within(findingList).getByRole("button", { name: /SDP007:/ }),
+    );
+    expectDetailItem(expectedDetail.title, "Explanation", expectedDetail.explanation);
+    expectDetailItem(
+      expectedDetail.title,
+      "Recommendation",
+      expectedDetail.recommendation ?? "None provided",
+    );
+    expectDetailItem(
+      expectedDetail.title,
+      "Affected IDs",
+      expectedDetail.affectedEntityIds.join(", "),
+    );
+    expectDetailItem(expectedDetail.title, "Fingerprint", expectedDetail.fingerprint);
+    for (const [index, source] of expectedDetail.sources.entries()) {
+      expectRenderedSourceRef(source, index);
+    }
+
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Select bundled fixture" }),
+      bundledFixtureSource.sourceId,
+    );
+    expect(await screen.findByText("No validation findings")).toBeInTheDocument();
+    expect(screen.queryByText(expectedDetail.title)).not.toBeInTheDocument();
+
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Select bundled fixture" }),
+      brokenFixtureSource.sourceId,
+    );
+    expect(await screen.findByText("PARSE_LEDGER_INVALID_JSON")).toBeInTheDocument();
+    expect(screen.getByText("No finding selected")).toBeInTheDocument();
+    expect(screen.queryByText(expectedDetail.title, { selector: '[data-slot="card-title"]' })).not.toBeInTheDocument();
+  });
+
+  it("repeats Analyze without duplicating rendered state", async () => {
+    const user = userEvent.setup();
+    const analyze = vi.fn(analyzeProject);
+    render(<App analyze={analyze} />);
+    expect(await screen.findByText("Bundled fixture analysis")).toBeInTheDocument();
+    expect(analyze).toHaveBeenCalledTimes(1);
+
+    await user.click(screen.getByRole("button", { name: "Analyze selected fixture" }));
+    await waitFor(() => expect(analyze).toHaveBeenCalledTimes(2));
+    expect(await screen.findByText("Bundled fixture analysis")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Analyze selected fixture" }));
+    await waitFor(() => expect(analyze).toHaveBeenCalledTimes(3));
+    expect(await screen.findByText("Bundled fixture analysis")).toBeInTheDocument();
+    expect(
+      screen.getAllByText("Project summary", {
+        selector: '[data-slot="card-title"]',
+      }),
+    ).toHaveLength(1);
+    expect(screen.getAllByText("No validation findings")).toHaveLength(1);
+  });
+
   it("replaces loading with a safe failure and no stale result", async () => {
     const { rerender } = render(<App />);
     expect(await screen.findByText("Bundled fixture analysis")).toBeInTheDocument();
@@ -68,6 +218,8 @@ describe("App workflow", () => {
     rerender(<App source={failingSource} analyze={vi.fn(async () => { throw new Error("secret stack"); })} />);
     expect(screen.getByText("Analyzing bundled fixture")).toBeInTheDocument();
     expect(await screen.findByText("Analysis failed")).toBeInTheDocument();
+    const failureRegion = screen.getByText("No previous analysis result is displayed.").closest("section");
+    expect(failureRegion).toHaveAttribute("role", "alert");
     expectDetailItem("Selected bundled source", "Fixture", "Broken fixture");
     expectDetailItem("Selected bundled source", "Source ID", "fixture:failed");
     expect(screen.getByText("No previous analysis result is displayed.")).toBeInTheDocument();
@@ -75,55 +227,125 @@ describe("App workflow", () => {
     expect(screen.queryByText(/secret stack/i)).not.toBeInTheDocument();
   });
 
-  it("shows canonical findings, complete detail, immutable filters, and does not reanalyze for UI changes", async () => {
-    const base = await baseAnalysis();
-    const findings: readonly Finding[] = [
-      { fingerprint: "fp-1", ruleId: "SDP001", severity: "error", title: "Missing target", explanation: "A relation target is unresolved.", recommendation: "Declare the target.", affectedEntityIds: ["SLC-X"], sources: [
-        { sourceId: "fixture:minimal", path: "SDP/Traceability/Relations.yaml", kind: "yaml", lineStart: 7, columnStart: 3, lineEnd: 8, columnEnd: 9, pointer: "/slices/SLC-X" },
-        { sourceId: "fixture:minimal", path: "SDP/Traceability/CurrentIndex.yaml", kind: "yaml", pointer: "/active/slice" },
-      ] },
-      { fingerprint: "fp-2", ruleId: "SDP008", severity: "warning", title: "Unknown profile", explanation: "Compatibility is ambiguous.", affectedEntityIds: [], sources: [] },
-    ];
-    const analyze = vi.fn(async () => ({ ...base, findings, snapshot: { ...base.snapshot, profile: { ...base.snapshot.profile, support: "partial" as const } } }));
-    render(<App analyze={analyze} />);
-    expect(await screen.findByText("SDP001: Missing target; affected: SLC-X")).toBeInTheDocument();
-    expect(screen.getByText("Compatibility: partial")).toBeInTheDocument();
-    expect(screen.getByText("This profile is partial; results remain visible with that limitation.")).toBeInTheDocument();
-    const first = screen.getByRole("button", { name: /SDP001: Missing target/ });
-    const second = screen.getByRole("button", { name: /SDP008: Unknown profile/ });
-    expect(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    fireEvent.click(first);
-    expect(first).toHaveAttribute("aria-pressed", "true");
-    expectDetailItem("Missing target", "Severity", "ERROR");
-    expectDetailItem("Missing target", "Rule ID", "SDP001");
-    expectDetailItem("Missing target", "Explanation", "A relation target is unresolved.");
-    expectDetailItem("Missing target", "Recommendation", "Declare the target.");
-    expectDetailItem("Missing target", "Affected IDs", "SLC-X");
-    expectDetailItem("Missing target", "Fingerprint", "fp-1");
-    expectDetailItem("Provenance source 1", "Source ID", "fixture:minimal");
-    expectDetailItem("Provenance source 1", "Path", "SDP/Traceability/Relations.yaml");
-    expectDetailItem("Provenance source 1", "Kind", "yaml");
-    expectDetailItem("Provenance source 1", "Line range", "7-8");
-    expectDetailItem("Provenance source 1", "Column range", "3-9");
-    expectDetailItem("Provenance source 1", "Pointer", "/slices/SLC-X");
-    expectDetailItem("Provenance source 2", "Source ID", "fixture:minimal");
-    expectDetailItem("Provenance source 2", "Path", "SDP/Traceability/CurrentIndex.yaml");
-    expectDetailItem("Provenance source 2", "Kind", "yaml");
-    expectDetailItem("Provenance source 2", "Line range", "Not available");
-    expectDetailItem("Provenance source 2", "Column range", "Not available");
-    expectDetailItem("Provenance source 2", "Pointer", "/active/slice");
-    fireEvent.change(screen.getByLabelText("Filter findings by severity"), { target: { value: "warning" } });
-    expect(screen.queryByRole("button", { name: /SDP001/ })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /SDP008/ })).toBeInTheDocument();
-    expect(findings).toHaveLength(2);
+  it("shows real canonical findings, complete detail, and immutable filters without reanalysis", async () => {
+    const analysis = await analyzeProject(brokenFixtureSource, context);
+    const before = JSON.stringify(analysis.findings);
+    const analyze = vi.fn(async () => analysis);
+    render(<App source={brokenFixtureSource} analyze={analyze} />);
+    const findingList = await screen.findByRole("list", {
+      name: "Validation findings",
+    });
+    const buttons = within(findingList).getAllByRole("button");
+
+    expect(buttons).toHaveLength(analysis.findings.length);
+    for (const [index, finding] of analysis.findings.entries()) {
+      expect(buttons[index]).toHaveTextContent(
+        `${finding.ruleId}: ${finding.title}`,
+      );
+    }
+
+    const firstFinding = analysis.findings[0];
+    const firstButton = buttons[0];
+    if (firstFinding === undefined || firstButton === undefined) {
+      throw new Error("Expected the broken fixture to produce findings.");
+    }
+    expect(firstFinding.sources.length).toBeGreaterThan(0);
+    fireEvent.click(firstButton);
+    expect(firstButton).toHaveAttribute("aria-pressed", "true");
+    expectDetailItem(firstFinding.title, "Severity", firstFinding.severity.toUpperCase());
+    expectDetailItem(firstFinding.title, "Rule ID", firstFinding.ruleId);
+    expectDetailItem(firstFinding.title, "Explanation", firstFinding.explanation);
+    expectDetailItem(
+      firstFinding.title,
+      "Recommendation",
+      firstFinding.recommendation ?? "None provided",
+    );
+    expectDetailItem(
+      firstFinding.title,
+      "Affected IDs",
+      firstFinding.affectedEntityIds.join(", "),
+    );
+    expectDetailItem(firstFinding.title, "Fingerprint", firstFinding.fingerprint);
+    for (const [index, source] of firstFinding.sources.entries()) {
+      expectRenderedSourceRef(source, index);
+    }
+
+    fireEvent.change(screen.getByLabelText("Filter findings by severity"), {
+      target: { value: "warning" },
+    });
+    expect(
+      within(findingList)
+        .getAllByRole("button")
+        .every((button) => button.textContent?.includes("WARNING")),
+    ).toBe(true);
+    expect(screen.getByText("No finding selected")).toBeInTheDocument();
+    expect(
+      screen.queryByText(firstFinding.title, {
+        selector: '[data-slot="card-title"]',
+      }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(findingList)
+        .getAllByRole("button")
+        .every((button) => button.getAttribute("aria-pressed") === "false"),
+    ).toBe(true);
+
+    const visibleButton = within(findingList).getAllByRole("button")[0];
+    if (visibleButton === undefined) {
+      throw new Error("Expected a warning finding after filtering.");
+    }
+    fireEvent.click(visibleButton);
+    expect(visibleButton).toHaveAttribute("aria-pressed", "true");
+    fireEvent.change(screen.getByLabelText("Filter findings by severity"), {
+      target: { value: "all" },
+    });
+    expect(visibleButton).toHaveAttribute("aria-pressed", "true");
+    expect(JSON.stringify(analysis.findings)).toBe(before);
     expect(analyze).toHaveBeenCalledTimes(1);
   });
 
-  it.each(["partial", "unknown", "unsupported"] as const)("renders %s compatibility honestly", async (support) => {
-    const base = await baseAnalysis();
-    render(<App analyze={vi.fn(async () => ({ ...base, snapshot: { ...base.snapshot, profile: { ...base.snapshot.profile, support } } }))} />);
+  it.each([
+    {
+      support: "partial" as const,
+      source: {
+        sourceId: "fixture:partial",
+        displayName: "Partial structured-core fixture",
+        async listFiles() {
+          return (await bundledFixtureSource.listFiles()).filter(
+            ({ path }) => path !== "SDP/Traceability/Ledger.ndjson",
+          );
+        },
+        readText: bundledFixtureSource.readText,
+      } satisfies ProjectSource,
+      diagnostic: "DISCOVERY_MISSING_CORE_SOURCE",
+    },
+    {
+      support: "unknown" as const,
+      source: {
+        sourceId: "fixture:unknown",
+        displayName: "Unknown structured-core fixture",
+        async listFiles() {
+          throw new Error("Test fixture listing unavailable");
+        },
+        readText: bundledFixtureSource.readText,
+      } satisfies ProjectSource,
+      diagnostic: "DISCOVERY_SOURCE_LIST_FAILED",
+    },
+  ])("derives $support compatibility through a real ProjectSource and controller run", async ({ support, source, diagnostic }) => {
+    render(<App source={source} />);
+
     expect(await screen.findByText(`Compatibility: ${support}`)).toBeInTheDocument();
+    expectDetailItem("Selected bundled source", "Source ID", source.sourceId);
+    expectDetailItem("Project summary", "Profile support", support);
+    expect(screen.getByText(diagnostic)).toBeInTheDocument();
     expect(screen.getByText(`This profile is ${support}; results remain visible with that limitation.`)).toBeInTheDocument();
+  });
+
+  it("renders explicitly injected unsupported compatibility without claiming it is source-derived", async () => {
+    const base = await baseAnalysis();
+    render(<App analyze={vi.fn(async () => ({ ...base, snapshot: { ...base.snapshot, profile: { ...base.snapshot.profile, support: "unsupported" as const } } }))} />);
+    expect(await screen.findByText("Compatibility: unsupported")).toBeInTheDocument();
+    expect(screen.getByText("This profile is unsupported; results remain visible with that limitation.")).toBeInTheDocument();
   });
 
   it("distinguishes a missing active declaration", async () => {
@@ -168,15 +390,18 @@ describe("App workflow", () => {
     { key: "{Enter}", label: "Enter" },
     { key: "[Space]", label: "Space" },
   ])("uses native button activation for finding selection with $label", async ({ key }) => {
-    const base = await baseAnalysis();
-    const finding: Finding = { fingerprint: "keyboard-fp", ruleId: "SDP005", severity: "error", title: "Missing declaration", explanation: "The declaration is unresolved.", affectedEntityIds: ["SLC-X"], sources: [] };
-    render(<App analyze={vi.fn(async () => ({ ...base, findings: [finding] }))} />);
-    const button = await screen.findByRole("button", { name: /SDP005: Missing declaration/ });
+    const analysis = await analyzeProject(brokenFixtureSource, context);
+    const finding = analysis.findings[0];
+    if (finding === undefined) throw new Error("Expected a real broken finding.");
+    render(<App source={brokenFixtureSource} />);
+    const button = await screen.findByRole("button", {
+      name: new RegExp(`${finding.ruleId}:`),
+    });
     expect(button.tagName).toBe("BUTTON");
     button.focus();
     await userEvent.keyboard(key);
     expect(button).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByText("The declaration is unresolved.")).toBeInTheDocument();
+    expect(screen.getByText(finding.explanation)).toBeInTheDocument();
   });
 
   it("keeps selected source out of SharedUI dashboard state", () => {

@@ -50,9 +50,9 @@ describe("loadProjectSnapshot", () => {
     expect(result.relations?.value).toBeDefined();
     expect(result.ledger?.value).toBeDefined();
     expect(result.snapshot.profile.support).toBe("supported");
-    expect(result.snapshot.entities).toHaveLength(4);
-    expect(result.snapshot.relations).toHaveLength(5);
-    expect(result.snapshot.ledger).toHaveLength(3);
+    expect(result.snapshot.entities).toHaveLength(7);
+    expect(result.snapshot.relations).toHaveLength(10);
+    expect(result.snapshot.ledger).toHaveLength(5);
   });
 
   it("retains a read failure and neighboring normalized facts in a partial snapshot (case 38)", async () => {
@@ -67,12 +67,12 @@ describe("loadProjectSnapshot", () => {
 
     expect(result.currentIndex?.value).toBeDefined();
     expect(result).not.toHaveProperty("relations");
-    expect(result.ledger?.value?.records).toHaveLength(3);
+    expect(result.ledger?.value?.records).toHaveLength(5);
     expect(result.snapshot.profile.support).toBe("partial");
     expect(result.snapshot.active).toMatchObject({ slice: "SLC-003" });
     expect(result.snapshot.entities).toEqual([]);
     expect(result.snapshot.relations).toEqual([]);
-    expect(result.snapshot.ledger).toHaveLength(3);
+    expect(result.snapshot.ledger).toHaveLength(5);
     expect(result.snapshot.diagnostics).toEqual([
       expect.objectContaining({
         code: "NORMALIZE_REQUIRED_SOURCE_UNAVAILABLE",

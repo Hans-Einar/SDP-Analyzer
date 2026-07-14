@@ -1372,3 +1372,193 @@ smoke was claimed; and no SLC/Tier/Sprint/Iteration completion was recorded.
 Relations marks SLC-007 blocked, CurrentIndex stays on SLC-007 and immutable
 event 056 preserves the stop reason. SLC-001 through SLC-006 remain completed;
 no Tier 2 work began.
+
+## SLC-007 supervising resolution and planning correction — 2026-07-13
+
+Status: active; bounded implementation authorized after planning validation
+
+The supervising architect accepted the stop decision and defined Tier 1 as the
+structured-core profile. The Master preserved the historical blocking section
+and immutable event 056, then corrected the governing plan before resuming
+product work:
+
+- added `DEC-STU-015` for path-only Markdown discovery and three-file
+  structured-core content analysis;
+- added `DEC-STU-016` for explicit relation + verification kind + non-empty
+  trimmed `check`/`command` + exact passed outcome;
+- moved stable `REQ-D-003` to planned TIER-003 ownership and added Tier 1
+  `REQ-D-007` without renumbering unrelated requirements;
+- clarified structured-core duplicate, compatibility and verification
+  requirements across Requirements, Architecture, Design Analysis, Design and
+  Implementation;
+- amended SLC-007 to exclude REQ-D-003, include REQ-D-007, authorize only the
+  bounded SDP007 correction and require the ten explicit regressions;
+- retained CurrentIndex on SLC-007 and SLC-001 through SLC-006 as completed;
+  and
+- added evidence-backed `check` descriptions to the six existing verification
+  entities by pointing to their existing detailed VER records. No new
+  verification or review record was created.
+
+Relations now marks SLC-007 active, records TIER-003 as planned rather than
+active, and preserves the open Sprint/Iteration/Tier boundary. Event 057 is the
+append-only supervising-resolution/unblock event. The 56-event prefix,
+including block event 056, remains unchanged.
+
+No product code was changed during this planning correction. The next fresh
+Worker owns the SDP007 implementation, clean/broken fixture integration, UI and
+documentation corrections, and permanent tests under the amended SLC-007
+contract. Verification and review remain unclaimed until real evidence exists.
+
+## SLC-007 Worker implementation — 2026-07-13
+
+Status: implementation complete; awaiting Master verification and independent
+review
+
+The bounded SLC-007 Worker pass implemented the supervising structured-core
+resolution without entering Tier 2 or Tier 3:
+
+- corrected `SDP007` so exact `outcome: passed` qualifies only with a non-empty
+  trimmed string `check` or `command`; one qualifying target is sufficient,
+  every resolved target used by a failure retains provenance, and missing
+  targets receive no invented provenance;
+- added the ten named `DEC-STU-016` regressions, including non-vacuous clean
+  fixture evidence and exact instrumentation proving that `analyzeProject`
+  reads only CurrentIndex, Relations and Ledger;
+- made the clean fixture non-vacuous with a past completed Slice and related
+  structured verification evidence while keeping it finding-free;
+- added a deterministic broken `ProjectSource` that produces real malformed
+  Ledger diagnostics, duplicate definitions, dangling relations,
+  contradictory hierarchy and non-qualifying completed-Slice verification;
+- added complete clean/broken application acceptance tests for deterministic
+  repeats, partial failure, canonical order/fingerprints, provenance and input
+  and result non-mutation;
+- exposed clean and broken fixtures through the shipped accessible fixture
+  selector, rendered project identity and the explicit
+  `sdp-toolkit-structured-core-v1` boundary, cleared stale selection/results on
+  switching, and retained a repeat Analyze action without duplicate state;
+- replaced hard-coded UI finding evidence with findings produced by the real
+  broken source and retained native Enter/Space activation coverage;
+- removed the unused `loadSourcePreview` path that read the first listed
+  Markdown file; and
+- rewrote README.md to describe the current commands, SharedUI tarball,
+  structured-core capability, read-only security boundary and exact Tier 2/3
+  limitations. `AGENTS-project.md` was inspected and remained current.
+
+Production/test files changed by the Worker are README.md; the bundled fixture
+source and test; new shared fixture-source and broken-fixture modules;
+application core-load/snapshot tests; the removed obsolete source preview;
+new Tier 1 acceptance and boundary tests; discovery profile and test;
+normalized bundled-fixture and profile expectations; SDP007 rule/tests and new
+qualification suite; and AnalyzerWorkflow/App/dashboard configuration plus UI
+tests. No Master-owned Scrum contract, Handoff, CurrentIndex, Relations,
+Ledger, Verification or CodeReview record was changed by the Worker.
+
+Exact Worker evidence:
+
+- focused SDP007/application acceptance: 3 files, 30 tests passed;
+- focused fixture/discovery/snapshot/UI integration: 6 files, 32 tests passed;
+- final rendered App suite: 1 file, 14 tests passed;
+- Tier 1 boundary suite: 1 file, 4 tests passed;
+- `npm ci`: exit 0, 271 packages installed/audited, 0 vulnerabilities (npm
+  emitted a non-fatal Windows cleanup warning for one pre-existing module
+  directory);
+- `npm run typecheck`: passed;
+- `npm test`: 20 files, 154 tests passed;
+- `npm run build`: passed, 2,069 modules transformed and a static `dist`
+  produced; Vite retained its non-failing over-500-kB chunk warning;
+- `npm ls SharedUI yaml --depth=0`: `SharedUI@0.1.0` and `yaml@2.9.0`;
+- `git diff --check`: exit 0 with line-ending conversion warnings only; and
+- isolated repository-owned copy: clean `npm ci`, typecheck, 20-file/154-test
+  suite, build and dependency listing all passed; the temporary directory was
+  removed.
+
+A local Vite server started successfully and the mandated in-app Browser
+workflow was attempted. Browser discovery returned no available backend
+(`agent.browsers.list()` was empty), so this Worker does not claim a real
+browser smoke. The permanent jsdom suite covers clean and broken source
+selection, loading/ready/failure, source reset, repeat analysis, real finding
+detail/provenance and Enter/Space activation. The Master retains the real
+browser-smoke gate, VER/REV creation, traceability and closure.
+
+Known Tier 1 limitations remain fixture-only acquisition; no local-folder
+adapter; path-only Markdown discovery with no content, ID, status or
+verification-document analysis; and no graph, report, CLI/CI, stale-work,
+execution, repair or write-back behavior. No commit, stage, push or pull
+request was created.
+
+## SLC-007 audit correction and Master verification — 2026-07-13
+
+Status: verification passed; fresh independent SLC/Tier review pending
+
+Two fresh read-only audits found one product-state defect and two material
+evidence regressions in the first Worker result. Filtering could leave detail
+for a finding whose button was hidden; the accepted complete normalized-fixture
+oracle had been weakened to partial projections; and rendered real provenance
+tests no longer locked line and column ranges. A bounded fresh correction
+Worker fixed the filter-selection state, restored an independent complete
+16-source/7-entity/10-relation/5-event snapshot oracle, and strengthened real
+provenance, compatibility, accessibility and default clean-pipeline tests.
+
+The correction Worker passed 4 focused files/22 tests, typecheck, all 20
+files/155 tests, build and diff hygiene. The Master then independently ran:
+
+- clean `npm ci`: 271 packages added, 272 audited, zero vulnerabilities;
+- focused `SDP007`: 2 files/27 tests;
+- focused fixtures/boundaries: 7 files/25 tests;
+- focused UI/controller: 2 files/18 tests;
+- strict typecheck;
+- full suite: 20 files/155 tests;
+- production build: 2,069 modules;
+- exact `SharedUI@0.1.0` and `yaml@2.9.0` dependency listing;
+- diff, stylesheet, layer, UI-core, raw-primitive, execution, filesystem,
+  graph/report/write-back, Markdown-parser and fixed-rule-ID scans; and
+- YAML/NDJSON, requirement/decision, relation and immutable-ledger validation.
+
+The committed 56-event Ledger prefix is unchanged. Event 056 remains the
+historical block and 057 remains the supervising unblock. CurrentIndex remains
+on SLC-007; SLC-001 through SLC-006 remain completed.
+
+An isolated repository-owned copy at
+`C:\Users\hanse\AppData\Local\Temp\SDP-Analyzer-SLC007-Master-20260713-231900`
+matched all 113 source-file hashes and independently passed clean install,
+typecheck, all tests, build and dependency listing.
+
+The in-app Browser verified the clean and broken selectors against the real
+Vite app. Clean repeat analysis retained one truthful finding-free summary.
+Broken analysis rendered three diagnostics and eight findings in stable order,
+complete `SDP007` detail with real/unavailable ranges and no invented missing
+target source, filter clearing, source round-trip reset and deterministic
+repeat output. Console warning/error count and horizontal overflow were zero.
+Permanent rendered user-event tests pass native Enter/Space activation; the
+Browser transport itself focused the button but did not synthesize the native
+click from its transport keypress command, so no separate transport-keyboard
+pass is claimed.
+
+`VER-SLC-007` and `VER-TIER-001` now contain the exact evidence. Relations
+links both passed records while keeping Slice/Tier active, and immutable events
+058-059 record verification. No review or completion is pre-claimed; the next
+step is one fresh independent Reviewer for both SLC-007 and TIER-001.
+
+## SLC-007 and Tier 1 independent approval and closure — 2026-07-13
+
+Fresh independent review is complete. `REV-SLC-007` and `REV-TIER-001` both
+record approved dispositions with zero actionable findings. The Reviewer
+independently re-ran clean install, the focused 27-test, 25-test and 18-test
+acceptance groups, strict typecheck, all 20 test files and 155 tests, the
+2,069-module production build, exact dependency resolution, diff and boundary
+scans, traceability validation and the isolated-copy checks. The Reviewer had
+no available browser backend and therefore did not claim a second browser
+session; it accepted the Master's real clean/broken in-app Browser evidence
+with independently re-run rendered real-source regressions.
+
+Relations now marks SLC-007, ITR-001, SPR-001 and TIER-001 completed and links
+the passed verification and approved review records. Immutable Ledger events
+060-065 record both reviews followed by Slice, Iteration, Sprint and Tier
+completion. The exact committed 56-event Ledger prefix, including historical
+block event 056, remains unchanged.
+
+CurrentIndex intentionally retains `SPR-001 / ITR-001 / SLC-007` as the last
+completed execution boundary. The project remains `active-development`
+because TIER-003 Markdown analysis and Tier 2 local-folder acquisition remain
+planned, not implemented. No later-Tier work was opened, and no commit, stage,
+push or pull request was created. Work stops at the Tier 1 boundary.

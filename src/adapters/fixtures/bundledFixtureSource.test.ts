@@ -29,10 +29,12 @@ describe("bundledFixtureSource", () => {
       "SDP/05--DesignAnalysis/design-analysis.md",
       "SDP/06--Design/design.md",
       "SDP/07--Implementation/implementation-plan.md",
+      "SDP/CodeReview/REV-SLC-002.md",
       "SDP/Sprints/SPR-001/ScrumIterations.md",
       "SDP/Traceability/CurrentIndex.yaml",
       "SDP/Traceability/Ledger.ndjson",
       "SDP/Traceability/Relations.yaml",
+      "SDP/Verification/VER-SLC-002.md",
       "SDP/Verification/verification-plan.md",
     ];
 
@@ -73,7 +75,10 @@ describe("bundledFixtureSource", () => {
 
     expect(currentIndex.text).toContain("slice: SLC-003");
     expect(relations.text).toContain("SLC-003:");
-    expect(ledger.text.trim().split("\n")).toHaveLength(3);
+    expect(relations.text).toContain("verification: VER-SLC-002");
+    expect(relations.text).toContain("check: Synthetic fixture assertion");
+    expect(relations.text).toContain("outcome: passed");
+    expect(ledger.text.trim().split("\n")).toHaveLength(5);
     expect([currentIndex.text, relations.text, ledger.text].join("\n")).not.toContain(
       "Placeholder",
     );

@@ -3,6 +3,7 @@
 Status: accepted for Tier 1 planning  
 ID: `IMP-001`  
 Date: 2026-07-11
+Amended: 2026-07-13 (Tier 1 structured-core acceptance)
 
 ## 1. Delivery principle
 
@@ -10,9 +11,9 @@ Design horizontally; implement and verify vertically. Every Slice leaves a build
 
 ## 2. Tier sequence
 
-- `TIER-001`: bundled-fixture analysis of core traceability with summary/findings UI.
+- `TIER-001`: bundled-fixture analysis of the structured-core traceability profile, with path-only Markdown discovery and summary/findings UI.
 - `TIER-002`: explicit browser local-directory adapter.
-- `TIER-003`: lifecycle/Sprint/Slice/Verification Markdown coverage.
+- `TIER-003`: Markdown heading/structure parsing, explicit stable-ID extraction, lifecycle/Sprint/Iteration/Slice/Verification/Review content coverage and richer verification-record interpretation.
 - `TIER-004`: report, CLI, CI and skill boundaries.
 - `TIER-005`: relation navigation and optional graph.
 - `TIER-006`: separately mandated repair assistance.
@@ -76,7 +77,7 @@ Exact filenames may follow established Vite conventions. Package extraction is d
 
 ## 6. Cross-Slice non-goals
 
-Browser folder access, Node service, Electron/Tauri, graph visualization, broad Markdown inference, stale thresholds, automatic repair, CLI/CI and skill implementation are outside `SPR-001` unless SDP is explicitly revised and accepted.
+Browser folder access, Node service, Electron/Tauri, graph visualization, Markdown content parsing or stable-ID extraction, richer verification-document interpretation, stale thresholds, automatic repair, CLI/CI and skill implementation are outside `SPR-001` unless SDP is explicitly revised and accepted. Tier 1 may only discover and classify Markdown paths under `REQ-D-007`.
 
 ## 7. Verification gates
 
@@ -98,4 +99,4 @@ A discovery that is necessary to meet the current Slice contract may be resolved
 
 ## 9. Completion signal
 
-`TIER-001` completes only when a bundled project fixture is analyzed end-to-end; core traceability parsing and initial rules are deterministic and tested; the UI exposes summary, active declarations, diagnostics, findings and provenance; all verification gates pass; independent review approves; and traceability accurately records the evidence.
+`TIER-001` completes only when a bundled project fixture is analyzed end-to-end against the structured-core profile; standard Markdown paths are discovered/classified without content reads; core traceability parsing and initial rules, including `DEC-STU-016` verification qualification, are deterministic and tested; the UI exposes summary, active declarations, diagnostics, findings and provenance; all verification gates pass; independent review approves; traceability accurately records the evidence; and acceptance explicitly records the TIER-003 Markdown limitations.

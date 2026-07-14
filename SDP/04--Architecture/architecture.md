@@ -3,6 +3,7 @@
 Status: accepted for Tier 1 planning  
 ID: `ARC-001`  
 Date: 2026-07-11
+Amended: 2026-07-13 (Tier 1 structured-core boundary)
 
 ## 1. Context
 
@@ -54,6 +55,7 @@ Responsibilities:
 - normalize repository-relative POSIX paths;
 - list/read only within the selected source root;
 - discover known SDP files and directories;
+- classify standard Markdown paths without reading their contents in Tier 1;
 - report absent, ambiguous and unsupported structures.
 
 Initial adapter: `FixtureProjectSource`. Later adapters: browser directory handle and Node filesystem.
@@ -62,23 +64,23 @@ Initial adapter: `FixtureProjectSource`. Later adapters: browser directory handl
 
 Responsibilities:
 
-- parse YAML, NDJSON and Markdown sources;
+- parse `CurrentIndex.yaml`, `Relations.yaml` and `Ledger.ndjson` in Tier 1;
 - retain parser diagnostics and exact source references;
 - return syntax-level records without applying project policy;
 - never execute repository content.
 
-Each parser is separately testable. Parser errors are data, not thrown application crashes, except for programming defects.
+Each parser is separately testable. Parser errors are data, not thrown application crashes, except for programming defects. Markdown content parsing is a future profile/parser adapter owned by TIER-003; Tier 1 does not read Markdown content or extract Markdown stable IDs.
 
 ### `ARC-COMP-003` Compatibility/profile layer
 
 Responsibilities:
 
-- identify the initial supported SDP profile;
+- identify the Tier 1 structured-core SDP profile defined by `DEC-STU-015`;
 - map known file conventions and fields to normalization inputs;
 - mark unknown, partial or ambiguous structures;
 - isolate future historical adapters.
 
-This layer does not hide unsupported data by coercing it into the current profile.
+This layer does not hide unsupported data by coercing it into the current profile. It keeps path-only Markdown coverage visible rather than presenting structured-core compatibility as complete installed-document analysis.
 
 ### `ARC-COMP-004` Normalized SDP domain model
 
@@ -101,7 +103,7 @@ Responsibilities:
 - isolate rule failure and convert it to an analyzer diagnostic;
 - avoid mutation of the snapshot.
 
-Rules query normalized facts, not React state or raw DOM/UI data.
+Rules query normalized facts, not React state or raw DOM/UI data. Tier 1 verification qualification is evaluated from explicit normalized relations plus verification entity attributes under `DEC-STU-016`; React components do not interpret verification evidence.
 
 ### `ARC-COMP-006` Findings model
 
@@ -167,8 +169,8 @@ Detailed types are defined in Design.
 
 1. User chooses a fixture/source.
 2. `ProjectSource` exposes file metadata and text.
-3. Discovery creates a source manifest and compatibility candidates.
-4. Parsers create syntax records and diagnostics with provenance.
+3. Discovery creates a source manifest, classifies standard Markdown paths and identifies compatibility candidates without reading Markdown content.
+4. Tier 1 parsers create syntax records and diagnostics with provenance only for the three structured traceability files.
 5. Profile normalization creates one immutable `ProjectSnapshot`.
 6. Rule engine runs canonical ordered rules.
 7. Application queries derive summary and active-work presentation.
@@ -194,7 +196,7 @@ No duplicate authoritative active-work state is maintained in React.
 
 ## 9. Security boundary
 
-The analyzer reads text only. It does not run target commands, import target modules, execute hooks, evaluate MDX, resolve custom YAML constructors, follow filesystem paths outside the selected root or upload content by default.
+The analyzer reads only the text authorized by the active profile. Tier 1 reads the three structured traceability files and does not read Markdown content. It does not run recorded verification commands, run target commands, import target modules, execute hooks, evaluate MDX, resolve custom YAML constructors, follow filesystem paths outside the selected root or upload content by default.
 
 ## 10. Deployment direction
 

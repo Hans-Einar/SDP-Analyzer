@@ -5,8 +5,18 @@ import type { AnalysisLifecycle } from "../application/analysisController";
 import type { Diagnostic } from "../core/diagnostics/Diagnostic";
 import type { Finding, FindingSeverity } from "../core/findings/Finding";
 import type { SourceRef } from "../core/source/SourceRef";
+import type { ProjectSource } from "../core/source/ProjectSource";
 
-const AnalysisViewContext = createContext<AnalysisLifecycle | undefined>(undefined);
+interface AnalysisViewValue {
+  readonly lifecycle: AnalysisLifecycle;
+  readonly availableSources: readonly ProjectSource[];
+  readonly onAnalyzeSelected: () => void;
+  readonly onSelectSource: (sourceId: string) => void;
+}
+
+const AnalysisViewContext = createContext<AnalysisViewValue | undefined>(
+  undefined,
+);
 export const AnalysisViewProvider = AnalysisViewContext.Provider;
 const value = (item: string | null | undefined) => item === undefined ? "Not declared" : item === null ? "Explicitly none" : item;
 const location = (source: SourceRef) => {
@@ -23,16 +33,39 @@ function useAnalysisView() {
 }
 
 export function SourceSelector() {
-  const lifecycle = useAnalysisView();
-  if (lifecycle === undefined) return <AlertBanner title="Source unavailable" message="The application source owner is not connected." tone="danger" />;
+  const view = useAnalysisView();
+  if (view === undefined) return <AlertBanner title="Source unavailable" message="The application source owner is not connected." tone="danger" />;
+  const { lifecycle } = view;
   const source = lifecycle.selectedSource;
   return <section aria-label="Fixture source selection">
-    <Section title="Fixture source" eyebrow="Source selection" body="Tier 1 analyzes the selected bundled fixture through the project-source interface." />
+    <Section title="Fixture source" eyebrow="Source selection" body="Tier 1 analyzes the selected bundled fixture through the structured-core project-source interface." />
+    <label>
+      Bundled fixture
+      <select
+        aria-label="Select bundled fixture"
+        value={source.sourceId}
+        onChange={(event) => view.onSelectSource(event.target.value)}
+        disabled={lifecycle.status === "loading"}
+      >
+        {view.availableSources.map((available) => (
+          <option key={available.sourceId} value={available.sourceId}>
+            {available.displayName}
+          </option>
+        ))}
+      </select>
+    </label>
     <DetailPanel title="Selected bundled source" items={[
       { label: "Fixture", value: source.displayName },
       { label: "Source ID", value: source.sourceId },
       { label: "Source type", value: "Bundled fixture" },
     ]} />
+    <button
+      type="button"
+      onClick={view.onAnalyzeSelected}
+      disabled={lifecycle.status === "loading"}
+    >
+      {lifecycle.status === "loading" ? "Analyzing selected fixture" : "Analyze selected fixture"}
+    </button>
     <AlertBanner title="Local folders unavailable" message="Local-folder selection is not available in Tier 1. This analysis reads only the bundled fixture and does not request filesystem access." tone="info" />
   </section>;
 }
@@ -40,8 +73,14 @@ export function SourceSelector() {
 function ProjectSummary({ analysis, sourceName }: { analysis: ProjectAnalysis; sourceName: string }) {
   const { snapshot, discovery, findings } = analysis;
   return <DetailPanel title="Project summary" items={[
-    { label: "Source", value: sourceName }, { label: "Discovered files", value: String(discovery.files.length) },
+    { label: "Source", value: sourceName },
+    { label: "Project ID", value: value(snapshot.project?.id) },
+    { label: "Project name", value: value(snapshot.project?.name) },
+    { label: "Project status", value: value(snapshot.project?.status) },
+    { label: "Declared tier", value: value(snapshot.project?.tier) },
+    { label: "Discovered files", value: String(discovery.files.length) },
     { label: "Profile ID", value: snapshot.profile.id }, { label: "Profile support", value: snapshot.profile.support },
+    { label: "Content coverage", value: "Three structured traceability files; Markdown paths only" },
     { label: "Input status", value: snapshot.diagnostics.length === 0 ? "Loaded without diagnostics" : `Loaded with ${snapshot.diagnostics.length} diagnostics` },
     { label: "Entities", value: String(snapshot.entities.length) }, { label: "Relations", value: String(snapshot.relations.length) },
     { label: "Ledger events", value: String(snapshot.ledger.length) }, { label: "Parse/normalization diagnostics", value: String(snapshot.diagnostics.length) },
@@ -86,14 +125,40 @@ function FindingsList({ findings }: { findings: readonly Finding[] }) {
   const [selected, setSelected] = useState<string>();
   const rules = useMemo(() => [...new Set(findings.map((f) => f.ruleId))], [findings]);
   const visible = useMemo(() => findings.filter((f) => (severity === "all" || f.severity === severity) && (rule === "all" || f.ruleId === rule)), [findings, rule, severity]);
-  const selectedFinding = findings.find((finding) => finding.fingerprint === selected);
+  const selectedFinding = visible.find((finding) => finding.fingerprint === selected);
+  const changeSeverity = (nextSeverity: "all" | FindingSeverity) => {
+    setSeverity(nextSeverity);
+    if (
+      selected !== undefined
+      && !findings.some(
+        (finding) => finding.fingerprint === selected
+          && (nextSeverity === "all" || finding.severity === nextSeverity)
+          && (rule === "all" || finding.ruleId === rule),
+      )
+    ) {
+      setSelected(undefined);
+    }
+  };
+  const changeRule = (nextRule: string) => {
+    setRule(nextRule);
+    if (
+      selected !== undefined
+      && !findings.some(
+        (finding) => finding.fingerprint === selected
+          && (severity === "all" || finding.severity === severity)
+          && (nextRule === "all" || finding.ruleId === nextRule),
+      )
+    ) {
+      setSelected(undefined);
+    }
+  };
   if (findings.length === 0) return <EmptyState title="No validation findings" message="No configured Tier 1 rule reported a finding for this evidence. This is not a claim of total project correctness." />;
   return <>
     <div aria-label="Finding filters">
-      <label>Severity <select aria-label="Filter findings by severity" value={severity} onChange={(e) => setSeverity(e.target.value as typeof severity)}>
+      <label>Severity <select aria-label="Filter findings by severity" value={severity} onChange={(e) => changeSeverity(e.target.value as typeof severity)}>
         <option value="all">All severities</option><option value="error">Error</option><option value="warning">Warning</option><option value="info">Info</option><option value="unknown">Unknown</option>
       </select></label>
-      <label> Rule <select aria-label="Filter findings by rule" value={rule} onChange={(e) => setRule(e.target.value)}><option value="all">All rules</option>{rules.map((id) => <option key={id}>{id}</option>)}</select></label>
+      <label> Rule <select aria-label="Filter findings by rule" value={rule} onChange={(e) => changeRule(e.target.value)}><option value="all">All rules</option>{rules.map((id) => <option key={id}>{id}</option>)}</select></label>
     </div>
     {visible.length === 0 ? <EmptyState title="No findings match these filters" message="Change or clear the filters to see the immutable analysis result." /> :
       <ul aria-label="Validation findings">{visible.map((finding) => <li key={finding.fingerprint}>
@@ -112,6 +177,7 @@ function ReadyAnalysis({ lifecycle }: { lifecycle: Extract<AnalysisLifecycle, { 
   return <>
     <PageHeader title="Bundled fixture analysis" description="The complete deterministic discovery, parsing, normalization, and validation pipeline for the selected fixture." />
     <Badge label={`Compatibility: ${analysis.snapshot.profile.support}`} tone={analysis.snapshot.profile.support === "supported" ? "success" : "warning"} />
+    <AlertBanner title="Structured-core profile" message="Tier 1 reads CurrentIndex, Relations, and Ledger content. Standard SDP Markdown paths are discovered, but Markdown content, IDs, statuses, and verification records are not analyzed." tone="info" />
     {analysis.snapshot.profile.support !== "supported" && <AlertBanner title="Compatibility is not fully supported" message={`This profile is ${analysis.snapshot.profile.support}; results remain visible with that limitation.`} tone="warning" />}
     <ProjectSummary analysis={analysis} sourceName={selectedSource.displayName} />
     <Section title="Declared active work" body="Values are declarations from CurrentIndex; validation findings separately report contradictions or unresolved references." />
@@ -122,13 +188,14 @@ function ReadyAnalysis({ lifecycle }: { lifecycle: Extract<AnalysisLifecycle, { 
     <Section title="Diagnostics" body="Acquisition, parser, normalization, and isolated rule-engine diagnostics are separate from validation findings." />
     <DiagnosticsSummary diagnostics={diagnostics} />
     <Section title="Validation findings" body="Findings remain in canonical domain order until presentation-only filters are applied." />
-    <FindingsList findings={analysis.findings} />
+    <FindingsList key={selectedSource.sourceId} findings={analysis.findings} />
   </>;
 }
 
 export function AnalyzerWorkflow() {
-  const lifecycle = useAnalysisView();
-  if (lifecycle === undefined) return <AlertBanner title="Analysis unavailable" message="The application analysis owner is not connected." tone="danger" />;
+  const view = useAnalysisView();
+  if (view === undefined) return <AlertBanner title="Analysis unavailable" message="The application analysis owner is not connected." tone="danger" />;
+  const { lifecycle } = view;
   if (lifecycle.status === "idle") return <EmptyState title="No analysis started" message="Select the bundled fixture to begin analysis." />;
   if (lifecycle.status === "loading") return <section aria-live="polite" aria-busy="true"><PageHeader title="Analyzing bundled fixture" description={`Loading ${lifecycle.selectedSource.displayName}`} /><CardSkeleton label="Loading project summary" /><TableSkeleton label="Loading findings" /></section>;
   if (lifecycle.status === "failed") return <section role="alert"><AlertBanner title="Analysis failed" message={lifecycle.message} tone="danger" /><p>No previous analysis result is displayed.</p></section>;

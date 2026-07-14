@@ -75,7 +75,56 @@ export const contradictoryActiveHierarchyRule: ValidationRule = { id: "SDP006", 
 } };
 
 export const completedSliceWithoutVerificationRule: ValidationRule = { id: "SDP007", evaluate(snapshot) {
-  return snapshot.entities.filter((e) => e.kind === "slice" && e.status === "completed").flatMap((slice) => { const rels = snapshot.relations.filter((r) => r.from === slice.id && r.type === "verification"); const targets = rels.flatMap((r) => { const target = snapshot.entities.find((e) => e.id === r.to); return target ? [target] : []; }); const qualifies = targets.some((target) => target.kind === "verification" && target.attributes.outcome === "passed"); if (qualifies) return []; return [finding({ ruleId: "SDP007", severity: "warning", title: `Completed Slice lacks passed verification: ${slice.id}`, explanation: `Slice ${slice.id} is explicitly completed but has no verification relation resolving to a verification entity with outcome "passed". Plans, reviews and Ledger prose were not treated as passed verification.`, affectedEntityIds: [slice.id, ...rels.map((r) => r.to)], sources: [...slice.sources, ...rels.flatMap((r) => r.sources), ...targets.flatMap((target) => target.sources)], recommendation: `Add a verification relation from ${slice.id} to a verification entity with explicit outcome "passed" after real checks succeed.` })]; });
+  return snapshot.entities
+    .filter((entity) => entity.kind === "slice" && entity.status === "completed")
+    .flatMap((slice) => {
+      const relations = snapshot.relations.filter(
+        (relation) =>
+          relation.from === slice.id && relation.type === "verification",
+      );
+      const targets = relations.flatMap((relation) => {
+        const target = snapshot.entities.find(
+          (entity) => entity.id === relation.to,
+        );
+        return target === undefined ? [] : [target];
+      });
+      const qualifies = targets.some((target) => {
+        const check = target.attributes.check;
+        const command = target.attributes.command;
+        const describesExecutedCheck =
+          (typeof check === "string" && check.trim().length > 0) ||
+          (typeof command === "string" && command.trim().length > 0);
+
+        return (
+          target.kind === "verification" &&
+          target.attributes.outcome === "passed" &&
+          describesExecutedCheck
+        );
+      });
+
+      if (qualifies) {
+        return [];
+      }
+
+      return [
+        finding({
+          ruleId: "SDP007",
+          severity: "warning",
+          title: `Completed Slice lacks qualifying verification: ${slice.id}`,
+          explanation: `Slice ${slice.id} is explicitly completed but has no explicit verification relation resolving to a verification entity with exact outcome "passed" and a non-empty check or command description. Plans, reviews, outcome-only entities and Ledger prose do not qualify.`,
+          affectedEntityIds: [
+            slice.id,
+            ...relations.map((relation) => relation.to),
+          ],
+          sources: [
+            ...slice.sources,
+            ...relations.flatMap((relation) => relation.sources),
+            ...targets.flatMap((target) => target.sources),
+          ],
+          recommendation: `Relate ${slice.id} to a verification entity that records exact outcome "passed" and a non-empty check or command description after the check succeeds.`,
+        }),
+      ];
+    });
 } };
 
 export const compatibilitySupportRule: ValidationRule = { id: "SDP008", evaluate(snapshot) {
