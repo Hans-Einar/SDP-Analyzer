@@ -2,13 +2,13 @@ project:
   id: SDP-ANALYZER
   name: SDP-Analyzer
   status: active-development
-  tier: TIER-001
+  tier: TIER-002
 
 active:
-  sprint: SPR-001
+  sprint: SPR-002
   refactor: null
-  iteration: ITR-001
-  slice: SLC-007
+  iteration: ITR-002
+  slice: SLC-008
 
 planning:
   mandate: SDP/01--Mandate/mandate.md
@@ -20,4 +20,4 @@ planning:
   implementation: IMP-001
   verification_plan: VER-PLAN-001
 
-updated: 2026-07-13
+updated: 2026-07-14

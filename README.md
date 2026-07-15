@@ -1,6 +1,6 @@
 # SDP Analyzer
 
-SDP Analyzer is a read-only static React application for inspecting repository-local Standard Document Procedure evidence. Its Tier 1 implementation analyzes bundled fixtures against the explicit `sdp-toolkit-structured-core-v1` profile.
+SDP Analyzer is a read-only static React application for inspecting repository-local Standard Document Procedure evidence. Its accepted Tier 1 implementation analyzes bundled fixtures against the explicit `sdp-toolkit-structured-core-v1` profile. The active Tier 2 foundation also provides a presentation-neutral browser-directory `ProjectSource` for an already-selected handle; it is not yet connected to a picker or UI.
 
 Tier 1 content analysis is deliberately limited to:
 
@@ -92,9 +92,15 @@ The analyzer currently provides:
 
 Diagnostics describe acquisition, parser, normalization, and isolated rule-engine conditions. Findings are separate validation conclusions. A finding-free clean fixture is not presented as proof of total repository correctness.
 
+## Tier 2 browser adapter foundation
+
+`BrowserDirectoryProjectSource` accepts an already-selected File System Access API directory handle and traverses only handles yielded beneath it. It lists canonical repository-relative file paths deterministically, reads file text lazily, reports immutable acquisition state for complete, partial, or failed listings, and exposes prompt-free read-permission inspection. Browser acquisition capability detection is separate and only checks whether the required picker surface is callable.
+
+This adapter is read-only. It does not invoke the directory picker, request permission, persist handles, upload content, expose write APIs, or add browser-specific behavior to discovery and analysis. The current application UI continues to offer only bundled fixtures until the separately contracted explicit user-gesture workflow is implemented.
+
 ## Read-only and security boundary
 
-Analyzed fixture content is processed in memory. The analyzer does not:
+Analyzed source content is processed in memory. The analyzer does not:
 
 - execute project code, scripts, hooks, binaries, MDX, YAML constructors, or recorded verification commands;
 - mutate, repair, or write back to the analyzed project;
@@ -105,7 +111,7 @@ Failure in one structured source retains diagnostics and any usable neighboring 
 
 ## Known limitations and planned work
 
-Tier 1 is fixture-only. It has no local-folder or browser File System Access API adapter. Local project selection belongs to Tier 2.
+The current UI remains fixture-only. The browser adapter accepts an already-selected handle, but local-folder selection, picker invocation, permission-request UX, and application source switching remain later Tier 2 work.
 
 Tier 1 discovers Markdown paths but does not analyze Markdown content, headings, stable IDs, document statuses, lifecycle/Sprint/Iteration/Slice text, review text, or verification-document content. That coverage belongs to Tier 3. The structured-core profile must not be interpreted as complete installed-document compatibility.
 

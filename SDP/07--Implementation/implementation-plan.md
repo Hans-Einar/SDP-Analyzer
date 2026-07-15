@@ -1,9 +1,10 @@
 # SDP-Analyzer Implementation Plan
 
-Status: accepted for Tier 1 planning  
+Status: accepted; Tier 1 completed and Tier 2 authorized
 ID: `IMP-001`  
 Date: 2026-07-11
 Amended: 2026-07-13 (Tier 1 structured-core acceptance)
+Amended: 2026-07-14 (Tier 2 explicit local-directory acquisition)
 
 ## 1. Delivery principle
 
@@ -18,7 +19,8 @@ Design horizontally; implement and verify vertically. Every Slice leaves a build
 - `TIER-005`: relation navigation and optional graph.
 - `TIER-006`: separately mandated repair assistance.
 
-Only `TIER-001` is authorized.
+`TIER-001` is completed and accepted. `TIER-002` is now authorized through
+`SPR-002 / ITR-002`. `TIER-003` and later Tiers remain planned only.
 
 ## 3. Tier 1 Sprint
 
@@ -42,6 +44,29 @@ Goal: deliver one honest end-to-end fixture workflow while proving the core arch
 
 Only one Slice is active at a time. Subsequent Slice contracts may be refined from verified discoveries but may not change `STU-001`, `ARC-001` or `DES-001` silently.
 
+## 3A. Tier 2 Sprint
+
+`SPR-002 — Explicit Local Project Acquisition`.
+
+Goal: prove explicit browser-local acquisition incrementally while preserving
+the accepted Tier 1 analysis pipeline and read-only security boundary.
+
+### Iteration
+
+`ITR-002 — Browser Directory Source Foundation`.
+
+### Ordered Slices
+
+1. `SLC-008 — Browser directory ProjectSource adapter`.
+2. `SLC-009 — Explicit folder selection and analysis UI`.
+3. `SLC-010 — Tier 2 browser compatibility and integration acceptance`.
+
+`SLC-008` is completed with passed verification and approved independent
+review. It accepts an already-selected directory handle, adds capability and
+permission-state inspection without prompting, and proves the adapter through
+the existing `ProjectSource` and `analyzeProject` boundaries. CurrentIndex is
+retained on SLC-008. `SLC-009` and `SLC-010` remain planned and inactive.
+
 ## 4. Repository structure target
 
 ```text
@@ -55,6 +80,7 @@ src/
   application/
   adapters/
     fixtures/
+    browser/ (from SLC-008)
   ui/
 fixtures/
 tests/ (only if not colocated)

@@ -1,5 +1,9 @@
 import type { Diagnostic } from "../diagnostics/Diagnostic";
-import type { ProjectSource } from "../source/ProjectSource";
+import {
+  hasProjectSourceAcquisitionListing,
+  type ProjectSource,
+  type ProjectSourceAcquisitionSnapshot,
+} from "../source/ProjectSource";
 import {
   compareProjectPaths,
   normalizeProjectPath,
@@ -63,10 +67,60 @@ function compareDiagnostics(left: Diagnostic, right: Diagnostic): number {
     : codeOrder;
 }
 
+const COMPLETE_ACQUISITION_SNAPSHOT: ProjectSourceAcquisitionSnapshot = {
+  completeness: "complete",
+  diagnostics: [],
+};
+
+function isObject(value: unknown): value is Record<PropertyKey, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function isDiagnostic(value: unknown): value is Diagnostic {
+  return (
+    isObject(value) &&
+    typeof value.code === "string" &&
+    (value.severity === "error" ||
+      value.severity === "warning" ||
+      value.severity === "info") &&
+    typeof value.message === "string"
+  );
+}
+
+function isAcquisitionSnapshot(
+  value: unknown,
+): value is ProjectSourceAcquisitionSnapshot {
+  return (
+    isObject(value) &&
+    (value.completeness === "complete" ||
+      value.completeness === "partial" ||
+      value.completeness === "failed") &&
+    Array.isArray(value.diagnostics) &&
+    value.diagnostics.every(isDiagnostic)
+  );
+}
+
+function getFailedAcquisitionSnapshot(
+  cause: unknown,
+): ProjectSourceAcquisitionSnapshot | undefined {
+  if (!isObject(cause)) {
+    return undefined;
+  }
+
+  try {
+    return isAcquisitionSnapshot(cause.acquisition)
+      ? cause.acquisition
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function createManifest(
   sourceId: string,
   files: readonly DiscoveredSource[],
   diagnostics: readonly Diagnostic[],
+  acquisitionCompleteness: ProjectSourceAcquisitionSnapshot["completeness"],
 ): ProjectDiscoveryManifest {
   const filesByPath = new Map(files.map((file) => [file.path, file]));
   const currentIndex = filesByPath.get(CORE_TRACEABILITY_PATHS.currentIndex);
@@ -85,11 +139,23 @@ function createManifest(
     ledger === undefined ? CORE_TRACEABILITY_PATHS.ledger : undefined,
   ].filter((path) => path !== undefined);
 
-  const missingCoreDiagnostics: Diagnostic[] = missingCorePaths.map((path) => ({
-    code: "DISCOVERY_MISSING_CORE_SOURCE",
-    severity: "warning",
-    message: `Required core traceability source is missing: ${path}`,
-  }));
+  const missingCoreDiagnostics: Diagnostic[] =
+    acquisitionCompleteness === "complete"
+      ? missingCorePaths.map((path) => ({
+          code: "DISCOVERY_MISSING_CORE_SOURCE",
+          severity: "warning",
+          message: `Required core traceability source is missing: ${path}`,
+        }))
+      : [];
+
+  const profileSupport =
+    acquisitionCompleteness === "failed"
+      ? "unknown"
+      : missingCorePaths.length === 0
+        ? "supported"
+        : acquisitionCompleteness === "complete"
+          ? "partial"
+          : "unknown";
 
   return {
     sourceId,
@@ -106,7 +172,7 @@ function createManifest(
     },
     profile: {
       id: CURRENT_SDP_PROFILE_ID,
-      support: missingCorePaths.length === 0 ? "supported" : "partial",
+      support: profileSupport,
     },
     diagnostics: [...diagnostics, ...missingCoreDiagnostics].sort(
       compareDiagnostics,
@@ -118,11 +184,19 @@ export async function discoverProject(
   source: ProjectSource,
 ): Promise<ProjectDiscoveryManifest> {
   let entries;
+  let acquisitionSnapshot = COMPLETE_ACQUISITION_SNAPSHOT;
 
   try {
-    entries = await source.listFiles();
+    if (hasProjectSourceAcquisitionListing(source)) {
+      const listing = await source.listFilesWithAcquisition();
+      entries = listing.entries;
+      acquisitionSnapshot = listing.acquisition;
+    } else {
+      entries = await source.listFiles();
+    }
   } catch (cause: unknown) {
     const detail = cause instanceof Error ? ` ${cause.message}` : "";
+    const failedAcquisition = getFailedAcquisitionSnapshot(cause);
     return {
       sourceId: source.sourceId,
       files: [],
@@ -139,16 +213,17 @@ export async function discoverProject(
         support: "unknown",
       },
       diagnostics: [
+        ...(failedAcquisition?.diagnostics ?? []),
         {
           code: "DISCOVERY_SOURCE_LIST_FAILED",
-          severity: "error",
+          severity: "error" as const,
           message: `Project source file listing failed.${detail}`,
         },
-      ],
+      ].sort(compareDiagnostics),
     };
   }
 
-  const diagnostics: Diagnostic[] = [];
+  const diagnostics: Diagnostic[] = [...acquisitionSnapshot.diagnostics];
   const candidates: Array<DiscoveredSource & { readonly inputPath: string }> = [];
 
   for (const entry of entries) {
@@ -216,5 +291,10 @@ export async function discoverProject(
     previousPath = candidate.path;
   }
 
-  return createManifest(source.sourceId, files, diagnostics);
+  return createManifest(
+    source.sourceId,
+    files,
+    diagnostics,
+    acquisitionSnapshot.completeness,
+  );
 }

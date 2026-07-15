@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { bundledFixtureSource } from "../../adapters/fixtures/bundledFixtureSource";
+import type { Diagnostic } from "../diagnostics/Diagnostic";
 import type {
   ProjectFileEntry,
   ProjectSource,
+  ProjectSourceAcquisitionSnapshot,
+  ProjectSourceWithAcquisitionListing,
 } from "../source/ProjectSource";
 import {
   CORE_TRACEABILITY_PATHS,
@@ -48,6 +51,43 @@ function createListFailureSource(): ProjectSource & {
     },
     getReadCount() {
       return readCount;
+    },
+  };
+}
+
+function createDiagnosticSource(
+  entries: readonly ProjectFileEntry[],
+  diagnostics: readonly Diagnostic[],
+  completeness: "complete" | "partial" | "failed",
+  rejectListing = false,
+): ProjectSourceWithAcquisitionListing {
+  const acquisition: ProjectSourceAcquisitionSnapshot = {
+    completeness,
+    diagnostics,
+  };
+
+  return {
+    sourceId: "diagnostic-source",
+    displayName: "Diagnostic source",
+    async listFiles() {
+      throw new Error("Discovery must prefer the atomic acquisition listing.");
+    },
+    async readText() {
+      throw new Error("Discovery must not read source contents.");
+    },
+    async listFilesWithAcquisition() {
+      if (rejectListing) {
+        const error = new Error("sanitized listing failure") as Error & {
+          readonly acquisition: ProjectSourceAcquisitionSnapshot;
+        };
+        Object.defineProperty(error, "acquisition", {
+          value: acquisition,
+          enumerable: true,
+        });
+        throw error;
+      }
+
+      return { entries, acquisition };
     },
   };
 }
@@ -220,6 +260,72 @@ describe("discoverProject", () => {
     ).toBe(true);
     expect(failedSource.getReadCount()).toBe(0);
     expect(emptySource.getReadCount()).toBe(0);
+  });
+
+  it("merges acquisition diagnostics after successful and rejected listings", async () => {
+    const acquisitionDiagnostic = Object.freeze({
+      code: "PROJECT_SOURCE_ACQUISITION_ENTRY_INACCESSIBLE",
+      severity: "error" as const,
+      message: "Directory evidence could not be fully enumerated at SDP/private.",
+    });
+    const partialSource = createDiagnosticSource(
+      [{ kind: "file", path: CORE_TRACEABILITY_PATHS.currentIndex }],
+      Object.freeze([acquisitionDiagnostic]),
+      "partial",
+    );
+    const rejectedSource = createDiagnosticSource(
+      [],
+      Object.freeze([acquisitionDiagnostic]),
+      "failed",
+      true,
+    );
+
+    const partial = await discoverProject(partialSource);
+    const rejected = await discoverProject(rejectedSource);
+
+    expect(partial.profile.support).toBe("unknown");
+    expect(partial.diagnostics).toContainEqual(acquisitionDiagnostic);
+    expect(
+      partial.diagnostics.filter(
+        (diagnostic) => diagnostic.code === "DISCOVERY_MISSING_CORE_SOURCE",
+      ),
+    ).toHaveLength(0);
+    expect(rejected.profile.support).toBe("unknown");
+    expect(rejected.diagnostics).toContainEqual(acquisitionDiagnostic);
+    expect(rejected.diagnostics).toContainEqual({
+      code: "DISCOVERY_SOURCE_LIST_FAILED",
+      severity: "error",
+      message:
+        "Project source file listing failed. sanitized listing failure",
+    });
+    expect(rejected.diagnostics).not.toContainEqual(
+      expect.objectContaining({ code: "DISCOVERY_MISSING_CORE_SOURCE" }),
+    );
+  });
+
+  it("keeps partial acquisition supported when every core source was observed", async () => {
+    const acquisitionDiagnostic = Object.freeze({
+      code: "PROJECT_SOURCE_ACQUISITION_ENTRY_INACCESSIBLE",
+      severity: "error" as const,
+      message: "Directory evidence could not be fully enumerated at private.",
+    });
+    const source = createDiagnosticSource(
+      [
+        { kind: "file", path: CORE_TRACEABILITY_PATHS.currentIndex },
+        { kind: "file", path: CORE_TRACEABILITY_PATHS.relations },
+        { kind: "file", path: CORE_TRACEABILITY_PATHS.ledger },
+      ],
+      Object.freeze([acquisitionDiagnostic]),
+      "partial",
+    );
+
+    const discovery = await discoverProject(source);
+
+    expect(discovery.profile.support).toBe("supported");
+    expect(discovery.diagnostics).toEqual([acquisitionDiagnostic]);
+    expect(discovery.diagnostics).not.toContainEqual(
+      expect.objectContaining({ code: "DISCOVERY_MISSING_CORE_SOURCE" }),
+    );
   });
 
   it("reports unsafe listed paths instead of repairing traversal", async () => {

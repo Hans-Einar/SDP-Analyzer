@@ -2,7 +2,8 @@
 
 Status: active  
 ID: `VER-PLAN-001`  
-Applies to: `TIER-001`, `SPR-001`
+Applies to: `TIER-001`, `SPR-001`, `TIER-002`, `SPR-002`
+Amended: 2026-07-14 (Tier 2 browser-directory acquisition)
 
 ## Purpose
 
@@ -47,8 +48,25 @@ Define evidence required before any Slice or Tier is marked complete. This plan 
 
 ## Planned records
 
-- `VER-SLC-001` through `VER-SLC-007`: created only after real execution.
-- `REV-SLC-001` through `REV-SLC-007`: independent review records.
-- `VER-TIER-001`: final integrated evidence after all Slices.
+- `VER-SLC-001` through `VER-SLC-007` and `VER-TIER-001` contain the accepted
+  Tier 1 evidence.
+- `VER-SLC-008`: passed browser-adapter verification.
+- `REV-SLC-008`: approved fresh independent review with no actionable finding.
+- `VER-SLC-009`, `VER-SLC-010` and `VER-TIER-002` remain planned and are not
+  evidence.
 
 No planned ID is evidence until its record exists and contains actual results.
+
+## Tier 2 SLC-008 verification matrix
+
+| Concern | Method |
+|---|---|
+| Capability detection | Tests with and without browser globals; prove no picker invocation |
+| Permission semantics | Fake-handle tests distinguish unsupported, prompt, granted and denied without requesting permission |
+| Recursive traversal | Empty, nested, shuffled-order and inaccessible-entry fake handles |
+| Path safety | Traversal, backslash, absolute, duplicate and unknown-read rejection |
+| Read-only behavior | Static and runtime scans for write handles, permission requests, picker calls, telemetry and execution |
+| Partial failure | Atomic entries/evidence, complete/partial/failed honesty, missing-core suppression, duplicate exclusion and overlapping-attempt safety |
+| Integration | Existing discovery and `analyzeProject` accept the browser adapter unchanged |
+| Architecture | Browser types stay under `src/adapters/browser`; no React, SharedUI or Node filesystem use |
+| Regression | Complete Tier 1 fixture suite remains passing |

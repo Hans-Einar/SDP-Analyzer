@@ -29,6 +29,11 @@ tiers:
     status: completed
     verification: [VER-TIER-001]
     review: [REV-TIER-001]
+  TIER-002:
+    derives_from: [STU-001, REQSET-001, ARC-001, DAN-001, DES-001, IMP-001]
+    sprint: SPR-002
+    status: active
+    requirements: [REQ-F-007, REQ-S-004, REQ-C-004]
   TIER-003:
     derives_from: [STU-001, REQSET-001, ARC-001, DAN-001, DES-001, IMP-001]
     status: planned
@@ -41,12 +46,22 @@ sprints:
     status: completed
     requirements: [REQ-F-001, REQ-F-002, REQ-F-003, REQ-F-004, REQ-F-005, REQ-F-006, REQ-D-001, REQ-D-002, REQ-D-004, REQ-D-005, REQ-D-006, REQ-D-007, REQ-V-001, REQ-V-002, REQ-V-003, REQ-V-004, REQ-V-005, REQ-V-006, REQ-V-007, REQ-V-008, REQ-P-001, REQ-P-002, REQ-P-003, REQ-P-004, REQ-UI-001, REQ-UI-002, REQ-UI-003, REQ-UI-004, REQ-T-001, REQ-T-002, REQ-T-003, REQ-T-004, REQ-T-005, REQ-S-001, REQ-S-002, REQ-S-003, REQ-C-001, REQ-C-002, REQ-C-003, REQ-M-001, REQ-M-002, REQ-M-003, REQ-M-004, REQ-M-005, REQ-NF-001, REQ-NF-002, REQ-NF-003, REQ-NF-004, REQ-NF-005]
     iteration: ITR-001
+  SPR-002:
+    path: SDP/Sprints/SPR-002/ScrumIterations.md
+    tier: TIER-002
+    status: active
+    requirements: [REQ-F-007, REQ-S-004, REQ-C-004]
+    iteration: ITR-002
 
 iterations:
   ITR-001:
     sprint: SPR-001
     status: completed
     slices: [SLC-001, SLC-002, SLC-003, SLC-004, SLC-005, SLC-006, SLC-007]
+  ITR-002:
+    sprint: SPR-002
+    status: active
+    slices: [SLC-008, SLC-009, SLC-010]
 
 slices:
   SLC-001:
@@ -136,8 +151,47 @@ slices:
     verification_plan: VER-PLAN-001
     verification: [VER-SLC-007]
     review: [REV-SLC-007]
+  SLC-008:
+    path: SDP/Sprints/SPR-002/ScrumIterations.md
+    sprint: SPR-002
+    iteration: ITR-002
+    status: completed
+    requirements: [REQ-F-007, REQ-S-004, REQ-M-002, REQ-C-004, REQ-S-002, REQ-S-003, REQ-NF-001, REQ-NF-002, REQ-T-001, REQ-T-003]
+    requirement_coverage:
+      REQ-F-007: partial
+      REQ-S-004: partial
+      REQ-M-002: foundation
+      REQ-C-004: foundation
+      REQ-S-002: foundation
+      REQ-S-003: foundation
+      REQ-NF-001: foundation
+      REQ-NF-002: foundation
+      REQ-T-001: foundation
+      REQ-T-003: foundation
+    architecture: [ARC-COMP-001, ARC-COMP-007, ARC-COMP-011, ADR-001, ADR-002, ADR-008]
+    study_decisions: [DEC-STU-004, DEC-STU-005]
+    design: [DES-001]
+    design_sections: [2, 7, 8, 9, 12, 13, 14]
+    verification_plan: VER-PLAN-001
+    verification: [VER-SLC-008]
+    review: [REV-SLC-008]
+  SLC-009:
+    path: SDP/Sprints/SPR-002/ScrumIterations.md
+    sprint: SPR-002
+    iteration: ITR-002
+    status: planned
+  SLC-010:
+    path: SDP/Sprints/SPR-002/ScrumIterations.md
+    sprint: SPR-002
+    iteration: ITR-002
+    status: planned
 
 reviews:
+  REV-SLC-008:
+    path: SDP/CodeReview/REV-SLC-008.md
+    slice: SLC-008
+    verification: [VER-SLC-008]
+    disposition: approved
   REV-SLC-007:
     path: SDP/CodeReview/REV-SLC-007.md
     slice: SLC-007
@@ -180,6 +234,13 @@ reviews:
     disposition: approved
 
 verification:
+  VER-SLC-008:
+    path: SDP/Verification/VER-SLC-008.md
+    slice: SLC-008
+    requirements: [REQ-F-007, REQ-S-004, REQ-M-002, REQ-C-004, REQ-S-002, REQ-S-003, REQ-NF-001, REQ-NF-002, REQ-T-001, REQ-T-003]
+    check: Exact command, fake-handle integration, concurrency, security, boundary, regression and traceability results recorded in SDP/Verification/VER-SLC-008.md
+    outcome: passed
+    review: [REV-SLC-008]
   VER-SLC-007:
     path: SDP/Verification/VER-SLC-007.md
     slice: SLC-007

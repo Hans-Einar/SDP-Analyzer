@@ -55,10 +55,10 @@ describe("Tier 1 production boundaries", () => {
     }
   });
 
-  it("contains no filesystem acquisition, graph, report-export or write-back implementation", () => {
+  it("contains no Node filesystem, graph, report-export or write-back implementation", () => {
     for (const [path, source] of implementationEntries(productSources)) {
       expect(source, path).not.toMatch(
-        /FileSystemDirectoryHandle|showDirectoryPicker|(?:from\s+["'](?:node:fs|fs)["'])|\bwriteFile\b|\bappendFile\b|\bcreateWriteStream\b|\breactflow\b|\bcytoscape\b|\bgraphlib\b|\bexportReport\b|\bdownloadReport\b/,
+        /(?:from\s+["'](?:node:fs|fs)["'])|\bwriteFile\b|\bappendFile\b|\bcreateWriteStream\b|\breactflow\b|\bcytoscape\b|\bgraphlib\b|\bexportReport\b|\bdownloadReport\b/,
       );
     }
   });
